@@ -16,6 +16,7 @@
       previous: ".previous",
       submit: ".submit",
       step: ".step",
+      branch: ".branch",
       current: "current",
       touched: "touched",
       disabled: "disabled",
@@ -52,12 +53,25 @@
 
       // In case a step has been added/removed from the DOM
       this.$steps = this.$wizard.find(o.step);
-      this.total = this.$steps.length;
-      this.current = step;
+      this.$branches = this.$wizard.find(o.branch);
 
-      // Activate/deactive steps accordingly
+      // Max is the highest step we can go to
+      this.max = this.$steps.length;
+
+      // Total is the total number of steps on the current branch
+      this.total = this.$branches.length ? this.$steps.filter(function() {
+        return self.branch ? $(this).parent(o.branch).attr("id") === self.branch
+          : $(this).parent(o.branch).length === 0;
+      }).length : this.max;
+
+      // Update the current step
+      this.current = step;
+console.log(this.current, this.total, this.max);
+      // Remove active step, hide all steps
       this.$steps.removeClass(o.current).hide();
-      this.$steps.eq(this.current).addClass(o.current).show();
+
+      // Make active step the current step and show it
+      this.$steps.eq(this.current).addClass(o.current + " " + o.touched).show();
 
       // First step
       if (step === 0) {
@@ -81,21 +95,22 @@
     },
 
     select: function(step) {
-      if (step >= 0 && step < this.total) {
+      console.log(step);
+      if (step > -1 && step < this.max) {
         this._update(step);
       }
     },
 
     next: function() {
-      var step = this.current + 1;
-
-      this.select(step);
+      this.select(this.$steps.index(
+        this.$steps.eq(this.current).nextAll(this.options.step).get(0)
+      ));
     },
 
     previous: function() {
-      var step = this.current - 1;
-
-      this.select(step);
+      this.select(this.$steps.index(
+        this.$steps.eq(this.current).prevAll(this.options.step).get(0)
+        ));
     },
 
     total: function() {
