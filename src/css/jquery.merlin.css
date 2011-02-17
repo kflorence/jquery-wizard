@@ -1,0 +1,4 @@
+.merlin .step {
+  /* IE 7/8 need this */
+  /*overflow: auto;*/
+}
