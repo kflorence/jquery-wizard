@@ -11,7 +11,13 @@
     <script language="javascript" type="text/javascript" src="../src/jquery.merlin.js"></script>
     <script language="javascript" type="text/javascript">
       jQuery(function() {
-        jQuery("#wizard").merlin();
+        jQuery("#wizard").merlin({
+          transitions: {
+            name: function() {
+              
+            }
+          }
+        });
       });
     </script>
   </head>
@@ -19,19 +25,24 @@
     <h1>jQuery.merlin</h1>
 
     <form name="wizardForm" id="wizard">
-      <div class="step">
+      <div class="step transition" id="name">
         <p>What is your name?</p>
         <input type="text" name="name" />
       </div>
 
-      <!-- start branch "kyle" -->
       <div class="branch" id="kyle">
-        <div class="step continue">
+        <div class="step">
           <p>Kyle's are awesome, amirite?</p>
-          <label><input type="checkbox" name="indeed" value="indeed" />Indeed</label>
+          <label><input type="radio" name="yes" value="yes" />Yes</label>
+          <label><input type="radio" name="no" value="no" />No</label>
+        </div>
+
+        <div class="branch" id="kyle-no">
+          <div class="step disableNext">
+            <p>O, rly?</p>
+          </div>
         </div>
       </div>
-      <!-- end branch "kyle" -->
 
       <div class="step">
         <p>What is your gender?</p>
@@ -39,7 +50,13 @@
         <label><input type="radio" name="gender" value="male" />Male</label>
       </div>
 
-      <div class="step">
+      <div class="branch" id="gender-male">
+        <div class="step submit">
+          <p>Form is complete. Thanks dude!</p>
+        </div>
+      </div>
+
+      <div class="step submit">
         <p>Form is complete. Thanks!</p>
       </div>
 
@@ -47,7 +64,7 @@
         <ul class="clearfix">
           <li><button type="button" name="previous" class="previous">Previous</button></li>
           <li><button type="button" name="next" class="next">Next</button></li>
-          <li><button type="submit" name="submit" class="submit">Submit</button></li>
+          <li><button type="submit" name="finish" class="finish">Finish</button></li>
         </ul>
       </div>
     </form>

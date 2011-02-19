@@ -1,7 +1,7 @@
 /**
  * @fileOverview jquery.merlin.js
  *
- * A simple, jQuery form wizard plugin.
+ * A lightweight jQuery wizard plugin.
  *
  * @author Kyle Florence <kyle[dot]florence[at]gmail[dot]com>
  * @website https://github.com/kflorence/jquery-merlin/
@@ -10,30 +10,63 @@
  * Dual licensed under the MIT and BSD licenses.
  */
 ;(function($, undefined) {
+  /* For better minification */
+  var disabled = "disabled";
+
   $.plugin("merlin", {
     options: {
-      next: ".next",
-      previous: ".previous",
-      submit: ".submit",
+      /* Elements */
       step: ".step",
       branch: ".branch",
-      current: "current",
-      touched: "touched",
+      next: "button.next",
+      previous: "button.previous",
+      submit: "button.submit",
+      /* Classes */
+      wizard: "merlin",
       disabled: "disabled",
-      start: 0
+      currentStep: "current",
+      touchedStep: "touched",
+      submitStep: "submit",
+      disableNext: "disableNext",
+      disablePrevious: "disablePrevious",
+      /* Animations */
+      inAnimation: {
+        properties: {
+          opacity: "show"
+        },
+        options: {
+          duration: 0
+        }
+      },
+      outAnimation: {
+        properties: {
+          opacity: "hide"
+        },
+        options: {
+          duration: 0
+        }
+      },
+      /* Misc */
+      continuous: false,
+      initialStep: 0,
+      /* Transitions */
+      transitions: {}
     },
 
     _initialize: function() {
-      var self = this;
+      var self = this, o = this.options,
+        $wizard = $(this.element);
 
       $.extend(this, {
-        $wizard:  $(this.element),
-        $next: $(this.options.next),
-        $previous: $(this.options.previous),
-        $submit: $(this.options.submit)
+        progress: [],
+        $wizard: $wizard,
+        $next: $(o.next),
+        $previous: $(o.previous),
+        $submit: $(o.submit)
       });
 
-      this.$wizard.addClass("merlin");
+      // Add wizard class
+      $wizard.addClass(o.wizard);
 
       // Next button
       this.$next.bind("click", function(e) {
@@ -45,76 +78,112 @@
         self.previous();
       });
 
-      this._update(this.options.start);
+      this._update(o.initialStep);
     },
 
     _update: function(step) {
-      var self = this, o = this.options;
+      var self = this, o = this.options,
+      $step, $steps = this.$wizard.find(o.step);
 
-      // In case a step has been added/removed from the DOM
-      this.$steps = this.$wizard.find(o.step);
-      this.$branches = this.$wizard.find(o.branch);
+      // Step is not the current step
+      if (this.$step && this.step !== step) {
+        // Going forwards
+        if (this.step < step) {
+          this.progress.push(step);
+        }
 
-      // Max is the highest step we can go to
-      this.max = this.$steps.length;
+        // Going backwards
+        else {
+          // Remove from touched elements
+          this.$step.removeClass(o.touchedStep);
 
-      // Total is the total number of steps on the current branch
-      this.total = this.$branches.length ? this.$steps.filter(function() {
-        return self.branch ? $(this).parent(o.branch).attr("id") === self.branch
-          : $(this).parent(o.branch).length === 0;
-      }).length : this.max;
+          // Remove from progress
+          this.progress.pop();
+        }
 
-      // Update the current step
-      this.current = step;
-console.log(this.current, this.total, this.max);
-      // Remove active step, hide all steps
-      this.$steps.removeClass(o.current).hide();
+        // Hide previous step
+        this.$step.removeClass(o.currentStep).animate(
+          o.outAnimation.properties, $.extend({}, o.outAnimation.options)
+        );
+      }
+console.log(this.progress);
+      // Store new values
+      $.extend(this, {
+        step: step,
+        $step: $step,
+        steps: $steps.length,
+        $steps: $steps
+      });
 
-      // Make active step the current step and show it
-      this.$steps.eq(this.current).addClass(o.current + " " + o.touched).show();
+      // Show current step
+      this.$step.addClass(o.currentStep + " " + o.touchedStep).animate(
+        o.inAnimation.properties, $.extend({}, o.inAnimation.options)
+      );
 
-      // First step
-      if (step === 0) {
-        this.$previous.addClass(o.disabled).attr("disabled", true);
+      // Disable previous
+      if ((step === 0 && !o.continuous)
+        || $step.hasClass(o.disablePrevious)) {
+        this.$previous.addClass(o.disabled).attr(disabled, true);
       } else {
-        this.$previous.removeClass(o.disabled).removeAttr("disabled");
+        this.$previous.removeClass(o.disabled).removeAttr(disabled);
       }
 
-      // Last step
-      if (step === (this.total - 1)) {
-        this.$next.addClass(o.disabled).attr("disabled", true);
-        this.$submit.removeClass(o.disabled).removeAttr("disabled");
+      // Disable next
+      if ((step === (this.steps - 1) && !o.continuous)
+        || $step.hasClass(o.disableNext)) {
+        this.$next.addClass(o.disabled).attr(disabled, true);
       } else {
-        this.$next.removeClass(o.disabled).removeAttr("disabled");
-        this.$submit.addClass(o.disabled).attr("disabled", true);
+        this.$next.removeClass(o.disabled).removeAttr(disabled);
+      }
+
+      // Submit step
+      if ($step.hasClass(o.submitStep)) {
+        this.$submit.removeClass(o.disabled).removeAttr(disabled);
+      } else {
+        this.$submit.addClass(o.disabled).attr(disabled, true);
       }
     },
 
-    current: function() {
-      return this.current;
+    _transition: function() {
+      var state, currentState = this.$step.attr("id"),
+        transition = this.options.transitions[currentState];
+
+      if (transition) {
+        state = transition.call(this, this.$step);
+      }
+
+      return state;
     },
 
     select: function(step) {
-      console.log(step);
-      if (step > -1 && step < this.max) {
+      // In the case that an ID is used...
+      if (typeof step === "string") {
+        step = $steps.index(($step = $(step)).get(0));
+      } else {
+        $step = $steps.eq(step);
+      }
+
+      if (this.$steps.eq(step).length) {
         this._update(step);
       }
     },
 
     next: function() {
-      this.select(this.$steps.index(
-        this.$steps.eq(this.current).nextAll(this.options.step).get(0)
-      ));
+      var next = this._transition() || this.$steps.index(
+          this.$steps.eq(this.step).nextAll(this.options.step).get(0)
+        );
+
+      if (next) {
+        this.select(next);
+      }
     },
 
     previous: function() {
-      this.select(this.$steps.index(
-        this.$steps.eq(this.current).prevAll(this.options.step).get(0)
-        ));
-    },
+      var previous = this.progress.pop();
 
-    total: function() {
-      return this.total;
+      if (previous) {
+        this.select(previous);
+      }
     }
   });
 })(jQuery);
