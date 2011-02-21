@@ -11,24 +11,29 @@
  */
 ;(function($, undefined) {
   /* For better minification */
-  var disabled = "disabled";
+  var click = "click", disabled = "disabled";
 
+  /**
+   * Set up the merlin plugin.
+   */
   $.plugin("merlin", {
+    /**
+     * Default options
+     */
     options: {
       /* Elements */
       step: ".step",
       branch: ".branch",
-      next: "button.next",
-      previous: "button.previous",
-      submit: "button.submit",
+      forward: ".forward",
+      backward: ".backward",
+      complete: ".complete",
       /* Classes */
       wizard: "merlin",
       disabled: "disabled",
-      currentStep: "current",
-      touchedStep: "touched",
-      submitStep: "submit",
-      disableNext: "disableNext",
-      disablePrevious: "disablePrevious",
+      current: "current",
+      submit: "submit",
+      noForward: "noForward",
+      noBackward: "noBackward",
       /* Animations */
       inAnimation: {
         properties: {
@@ -53,137 +58,194 @@
       transitions: {}
     },
 
+    /**
+     * Set up the wizard.
+     *
+     * @private
+     */
     _initialize: function() {
-      var self = this, o = this.options,
-        $wizard = $(this.element);
+      var self = this;
 
-      $.extend(this, {
-        progress: [],
-        $wizard: $wizard,
-        $next: $(o.next),
-        $previous: $(o.previous),
-        $submit: $(o.submit)
-      });
+      this.$wizard = $(this.element).addClass(this.options.wizard);
 
-      // Add wizard class
-      $wizard.addClass(o.wizard);
+      this.$forward = $(this.options.forward);
+      this.$backward = $(this.options.backward);
+      this.$complete = $(this.options.complete);
 
-      // Next button
-      this.$next.bind("click", function(e) {
-        self.next();
-      });
+      if (this.$forward.length) {
+        this.$forward.bind(click, function(e) {
+          self.forward();
+        });
+      }
 
-      // Previous button
-      this.$previous.bind("click", function(e) {
-        self.previous();
-      });
+      if (this.$backward.length) {
+        this.$backward.bind(click, function(e) {
+          self.backward();
+        });
+      }
 
-      this._update(o.initialStep);
+      if (this.$complete.length) {
+        this.$complete.bind(click, function(e) {
+          self.submit();
+        });
+      }
+
+      this.update();
+
+      this.select(this.options.initialStep);
     },
 
-    _update: function(step) {
-      var self = this, o = this.options,
-      $step, $steps = this.$wizard.find(o.step);
+    /**
+     * Contains the index for each step the user has visited, in order.
+     */
+    _path: [],
 
-      // Step is not the current step
-      if (this.$step && this.step !== step) {
-        // Going forwards
-        if (this.step < step) {
-          this.progress.push(step);
-        }
-
-        // Going backwards
-        else {
-          // Remove from touched elements
-          this.$step.removeClass(o.touchedStep);
-
-          // Remove from progress
-          this.progress.pop();
-        }
-
-        // Hide previous step
-        this.$step.removeClass(o.currentStep).animate(
-          o.outAnimation.properties, $.extend({}, o.outAnimation.options)
-        );
-      }
-console.log(this.progress);
-      // Store new values
-      $.extend(this, {
-        step: step,
-        $step: $step,
-        steps: $steps.length,
-        $steps: $steps
-      });
-
-      // Show current step
-      this.$step.addClass(o.currentStep + " " + o.touchedStep).animate(
-        o.inAnimation.properties, $.extend({}, o.inAnimation.options)
-      );
-
-      // Disable previous
-      if ((step === 0 && !o.continuous)
-        || $step.hasClass(o.disablePrevious)) {
-        this.$previous.addClass(o.disabled).attr(disabled, true);
-      } else {
-        this.$previous.removeClass(o.disabled).removeAttr(disabled);
-      }
-
-      // Disable next
-      if ((step === (this.steps - 1) && !o.continuous)
-        || $step.hasClass(o.disableNext)) {
-        this.$next.addClass(o.disabled).attr(disabled, true);
-      } else {
-        this.$next.removeClass(o.disabled).removeAttr(disabled);
-      }
-
-      // Submit step
-      if ($step.hasClass(o.submitStep)) {
-        this.$submit.removeClass(o.disabled).removeAttr(disabled);
-      } else {
-        this.$submit.addClass(o.disabled).attr(disabled, true);
-      }
-    },
-
+    /**
+     * Looks for a transition function to tell us where to go next.
+     *
+     * @private
+     */
     _transition: function() {
-      var state, currentState = this.$step.attr("id"),
-        transition = this.options.transitions[currentState];
+      var step, key = this.$step.attr("data-transition") || this.step,
+        transition = this.options.transitions[key];
 
       if (transition) {
-        state = transition.call(this, this.$step);
+        step = transition.call(this, this.$step);
       }
 
-      return state;
+      return step;
     },
 
-    select: function(step) {
-      // In the case that an ID is used...
-      if (typeof step === "string") {
-        step = $steps.index(($step = $(step)).get(0));
+    /**
+     * Update the wizard for the new step.
+     *
+     * @param {number} step
+     *    The index of the new step.
+     * @param {jQuery} $step
+     *    The jQuery object represeting the new step.
+     *
+     * @private
+     */
+    _update: function(step, $step) {
+      var self = this, forward = step > this.step,
+        siblings = $step.siblings(this.options.step).length;
+
+      // Proceed only if we have already set the current step
+      if (this.$step) {
+        // Remove current step if going backwards
+        if (!forward) {
+          this._path.pop();
+        }
+
+        // Hide currently displayed step
+        this.$step.animate(
+          this.options.outAnimation.properties,
+          $.extend({}, this.options.outAnimation.options)
+        ).removeClass(this.options.current);
+      }
+
+      // Update pointers to current step
+      this.step = step;
+      this.$step = $step;
+
+      // Add new step if going forward or if it's the first step
+      if (forward || !this._path.length) {
+        this._path.push(step);
+      }
+
+      // Show the new step
+      this.$step.animate(
+        this.options.inAnimation.properties,
+        $.extend({}, this.options.inAnimation.options)
+      ).addClass(this.options.current);
+
+      // The backward button will be disabled if we are on the first step
+      // and are not in continuous mode, or if the current step has the
+      // "noBackward" class.
+      if ((step === 0 && !this.options.continuous)
+        || this.$step.hasClass(this.options.noBackward)) {
+        this.$backward.addClass(this.options.disabled).attr(disabled, true);
       } else {
-        $step = $steps.eq(step);
+        this.$backward.removeClass(this.options.disabled).removeAttr(disabled);
       }
 
-      if (this.$steps.eq(step).length) {
-        this._update(step);
+      // The forward button will be disabled if we are on the last possible
+      // step and are not in continuous mode, or if the current step has the
+      // "noForward" class.
+      if ((step === siblings && !this.options.continuous)
+        || this.$step.hasClass(this.options.noForward)) {
+        this.$forward.addClass(this.options.disabled).attr(disabled, true);
+      } else {
+        this.$forward.removeClass(this.options.disabled).removeAttr(disabled);
+      }
+
+      // The submit step is only enabled on steps with the "submitStep" class.
+      if ($step.hasClass(this.options.submit)) {
+        this.$complete.removeClass(this.options.disabled).removeAttr(disabled);
+      } else {
+        this.$complete.addClass(this.options.disabled).attr(disabled, true);
       }
     },
 
-    next: function() {
-      var next = this._transition() || this.$steps.index(
-          this.$steps.eq(this.step).nextAll(this.options.step).get(0)
-        );
+    /**
+     * Selects a step in the wizard.
+     *
+     * @param {number|String} step
+     *    The index or string ID of the step to select.
+     */
+    select: function(step) {
+      if (step !== undefined) {
+        var $step;
 
-      if (next) {
-        this.select(next);
+        if (typeof step === "string") {
+          $step = this.$steps.find(step);
+          step = this.$steps.index($step.get(0));
+        } else if (typeof step === "number") {
+          $step = this.$steps.eq(step);
+        }
+
+        if ($step.length && this.step !== step) {
+          this._update(step, $step);
+        }
       }
     },
 
-    previous: function() {
-      var previous = this.progress.pop();
+    complete: function() {
+      console.log("complete");
+    },
 
-      if (previous) {
-        this.select(previous);
-      }
+    /**
+     * Move the wizard forward. Uses a transition function if one is found,
+     * otherwise uses the next step in the current branch.
+     */
+    forward: function() {
+      this.select(this._transition() || this.$steps.index(
+        this.$step.nextAll(this.options.step).get(0))
+      );
+    },
+
+    /**
+     * Move the wizard backwards. This will go to the previous step.
+     */
+    backward: function() {
+      this.select(this._path[this._path.length - 2]);
+    },
+
+    /**
+     * Returns the current path of steps in the order that the user progressed
+     * through them.
+     */
+    path: function(index) {
+      return index ? this._path[index] : this._path;
+    },
+
+    /**
+     * Updates the steps found within the wizard. Should be called whenever
+     * anything is added or removed from the DOM.
+     */
+    update: function() {
+      this.$steps = this.$wizard.find(this.options.step);
+      this.steps = this.$steps.length;
     }
   });
 })(jQuery);
