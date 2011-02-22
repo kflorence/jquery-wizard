@@ -1,7 +1,7 @@
 /**
- * @fileOverview jquery.merlin.js
+ * @fileOverview jquery.ui.wizard.js
  *
- * A lightweight jQuery wizard plugin.
+ * A jQuery UI wizard that supports branching.
  *
  * @author Kyle Florence <kyle[dot]florence[at]gmail[dot]com>
  * @website https://github.com/kflorence/jquery-merlin/
@@ -13,20 +13,15 @@
   /* For better minification */
   var click = "click", disabled = "disabled";
 
-  /**
-   * Set up the merlin plugin.
-   */
-  $.plugin("merlin", {
-    /**
-     * Default options
-     */
+  $.widget("ui.wizard", {
     options: {
-      /* Elements */
+      /* Selectors */
       step: ".step",
       branch: ".branch",
+      transition: ".transition",
       forward: ".forward",
       backward: ".backward",
-      complete: ".complete",
+      finish: ".finish",
       /* Classes */
       wizard: "merlin",
       disabled: "disabled",
@@ -34,6 +29,8 @@
       submit: "submit",
       noForward: "noForward",
       noBackward: "noBackward",
+      /* Attributes */
+      transitionAttr: "data-transition",
       /* Animations */
       inAnimation: {
         properties: {
@@ -63,14 +60,13 @@
      *
      * @private
      */
-    _initialize: function() {
+    _create: function() {
       var self = this;
 
       this.$wizard = $(this.element).addClass(this.options.wizard);
-
       this.$forward = $(this.options.forward);
       this.$backward = $(this.options.backward);
-      this.$complete = $(this.options.complete);
+      this.$finish = $(this.options.finish);
 
       if (this.$forward.length) {
         this.$forward.bind(click, function(e) {
@@ -84,9 +80,9 @@
         });
       }
 
-      if (this.$complete.length) {
-        this.$complete.bind(click, function(e) {
-          self.submit();
+      if (this.$finish.length) {
+        this.$finish.bind(click, function(e) {
+          self.finish();
         });
       }
 
@@ -103,17 +99,22 @@
     /**
      * Looks for a transition function to tell us where to go next.
      *
+     * @returns {number}
+     *    Returns the index of the step to transition to, or -1 if no index
+     *    was provided.
+     *
      * @private
      */
     _transition: function() {
-      var step, key = this.$step.attr("data-transition") || this.step,
-        transition = this.options.transitions[key];
+      var index = -1, key, transition;
 
-      if (transition) {
-        step = transition.call(this, this.$step);
+      if (this.$step && (key = this.$step.attr(this.options.transitionAttr))) {
+        if ((transition = this.options.transitions[key])) {
+          index = transition.call(this, this.$step);
+        }
       }
 
-      return step;
+      return index;
     },
 
     /**
@@ -127,8 +128,14 @@
      * @private
      */
     _update: function(step, $step) {
-      var self = this, forward = step > this.step,
-        siblings = $step.siblings(this.options.step).length;
+      var self = this,
+        forward = step > this.step,
+        // The current branch (may be this.$wizard)
+        $branch = $step.parent(),
+        // The last step on the current branch
+        lastStep = this.$steps.index(
+          $branch.children(this.options.step).filter(":last").get(0)
+        );
 
       // Proceed only if we have already set the current step
       if (this.$step) {
@@ -140,6 +147,7 @@
         // Hide currently displayed step
         this.$step.animate(
           this.options.outAnimation.properties,
+          // Fixes http://bugs.jquery.com/ticket/3583
           $.extend({}, this.options.outAnimation.options)
         ).removeClass(this.options.current);
       }
@@ -156,6 +164,7 @@
       // Show the new step
       this.$step.animate(
         this.options.inAnimation.properties,
+        // Fixes http://bugs.jquery.com/ticket/3583
         $.extend({}, this.options.inAnimation.options)
       ).addClass(this.options.current);
 
@@ -172,7 +181,7 @@
       // The forward button will be disabled if we are on the last possible
       // step and are not in continuous mode, or if the current step has the
       // "noForward" class.
-      if ((step === siblings && !this.options.continuous)
+      if ((step === lastStep && !this.options.continuous)
         || this.$step.hasClass(this.options.noForward)) {
         this.$forward.addClass(this.options.disabled).attr(disabled, true);
       } else {
@@ -181,47 +190,10 @@
 
       // The submit step is only enabled on steps with the "submitStep" class.
       if ($step.hasClass(this.options.submit)) {
-        this.$complete.removeClass(this.options.disabled).removeAttr(disabled);
+        this.$finish.removeClass(this.options.disabled).removeAttr(disabled);
       } else {
-        this.$complete.addClass(this.options.disabled).attr(disabled, true);
+        this.$finish.addClass(this.options.disabled).attr(disabled, true);
       }
-    },
-
-    /**
-     * Selects a step in the wizard.
-     *
-     * @param {number|String} step
-     *    The index or string ID of the step to select.
-     */
-    select: function(step) {
-      if (step !== undefined) {
-        var $step;
-
-        if (typeof step === "string") {
-          $step = this.$steps.find(step);
-          step = this.$steps.index($step.get(0));
-        } else if (typeof step === "number") {
-          $step = this.$steps.eq(step);
-        }
-
-        if ($step.length && this.step !== step) {
-          this._update(step, $step);
-        }
-      }
-    },
-
-    complete: function() {
-      console.log("complete");
-    },
-
-    /**
-     * Move the wizard forward. Uses a transition function if one is found,
-     * otherwise uses the next step in the current branch.
-     */
-    forward: function() {
-      this.select(this._transition() || this.$steps.index(
-        this.$step.nextAll(this.options.step).get(0))
-      );
     },
 
     /**
@@ -232,11 +204,96 @@
     },
 
     /**
+     * TODO should be similar to index in search terms
+     */
+    branch: function(name) {
+      return this.$wizard.find(name.charAt(0) === "#" ? name : "#" + name);
+    },
+
+    /**
+     * Finish the wizard. Triggers the finish event.
+     */
+    finish: function() {
+      console.log("complete");
+    },
+
+    firstStep: function(branch) {
+      return (branch ? this.branch(branch) : this.$wizard)
+        .children(this.options.step).filter(":first");
+    },
+
+    /**
+     * Move the wizard forward. Uses a transition function if one is found,
+     * otherwise uses the next step in the current branch.
+     */
+    forward: function() {
+      var next = this._transition();
+
+      this.select(next >= 0 ? next
+        : this.$steps.index(this.$step.nextAll(this.options.step))
+      );
+    },
+
+    index: function(search, andElement) {
+      var $step, index, searchType = typeof search;
+
+      // Search by index
+      if (searchType === "number") {
+        $step = this.$steps.eq(search);
+      }
+
+      // Search by ID
+      else if (searchType === "string") {
+        $step = this.$steps.find(
+          search.charAt(0) === "#" ? search : "#" + search
+        );
+      }
+
+      // Search by jQuery object
+      else if (searchType === "object"
+        && search.hasOwnProperty
+        && search instanceof jQuery) {
+        $step = search;
+      }
+
+      // The only sure way to determine whether or not we have found a step
+      // in the wizard is to select an element and test for length. We check
+      // for these first because if we pass undefined to index, as of jQuery
+      // 1.4 it will return the index of the element calling the function.
+      index = $step && $step.length ? this.$steps.index($step) : -1;
+
+      // Returns only the index by default. Returns the step associated with
+      // the index if andElement flag is true -- mostly used internally.
+      return andElement ? { "index" : index, "element" : $step } : index;
+    },
+
+    lastStep: function(branch) {
+      return (branch ? this.branch(branch) : this.$wizard)
+        .children(this.options.step).filter(":last");
+    },
+
+    /**
      * Returns the current path of steps in the order that the user progressed
      * through them.
      */
     path: function(index) {
       return index ? this._path[index] : this._path;
+    },
+
+    /**
+     * Selects a step in the wizard.
+     *
+     * @param {number|String} step
+     *    The index or string ID of the step to select.
+     */
+    select: function(step) {
+      step = this.index(step, true);
+
+      if ((step.index >= 0)
+        && (step.index < this.steps)
+        && (step.index !== this.step)) {
+        this._update(step.index, step.element);
+      }
     },
 
     /**

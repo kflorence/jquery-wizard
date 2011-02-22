@@ -1,24 +1,27 @@
 <html>
   <head>
-    <title>jQuery.merlin</title>
+    <title>jQuery.ui.wizard</title>
 
     <link rel="stylesheet" type="text/css" href="styles.css" />
-    <link rel="stylesheet" type="text/css" href="../src/jquery.merlin.css" />
+    <link rel="stylesheet" type="text/css" href="../src/jquery.ui.wizard.css" />
 
-    <script language="javascript" type="text/javascript" src="http://code.jquery.com/jquery-1.4.js"></script>
-    <script language="javascript" type="text/javascript"
-      src="http://comato.se/jquery-plugin/src/jquery.plugin.js"></script>
-    <script language="javascript" type="text/javascript" src="../src/jquery.merlin.js"></script>
+    <script language="javascript" type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.0/jquery.min.js"></script>
+    <script language="javascript" type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/jquery-ui.min.js"></script>
+    <script language="javascript" type="text/javascript" src="../src/jquery.ui.wizard.js"></script>
     <script language="javascript" type="text/javascript">
       jQuery(function() {
-        jQuery("#wizard").merlin({
-          transitions: {}
+        jQuery("#wizard").wizard({
+          transitions: {
+            gender: function($step) {
+              return this.index(this.firstStep($step.find("[name=gender]:checked").val()));
+            }
+          }
         });
       });
     </script>
   </head>
   <body>
-    <h1>jQuery.merlin</h1>
+    <h1>jQuery.ui.wizard</h1>
 
     <form name="wizardForm" id="wizard">
       <div class="step">
@@ -32,17 +35,17 @@
         <label><input type="radio" name="gender" value="male" />Male</label>
       </div>
 
-      <div class="step submit">
+      <div class="step submit" id="submit">
         <p>Form is finished. Thanks!</p>
       </div>
 
-      <div class="branch" data-branch="female">
+      <div class="branch" id="female">
         <div class="step transition" data-transition="submit">
           <p>You selected female.</p>
         </div>
       </div>
 
-      <div class="branch" data-branch="male">
+      <div class="branch" id="male">
         <div class="step transition" data-transition="submit">
           <p>You selected male.</p>
         </div>
@@ -52,7 +55,7 @@
         <ul class="clearfix">
           <li><button type="button" name="backward" class="backward">Backward</button></li>
           <li><button type="button" name="forward" class="forward">Forward</button></li>
-          <li><button type="submit" name="complete" class="complete">Complete</button></li>
+          <li><button type="submit" name="finish" class="finish">Finish</button></li>
         </ul>
       </div>
     </form>
