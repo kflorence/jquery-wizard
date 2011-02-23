@@ -11,9 +11,9 @@
     <script language="javascript" type="text/javascript">
       jQuery(function() {
         jQuery("#wizard").wizard({
-          transitions: {
+          actions: {
             gender: function($step) {
-              return this.index(this.firstStep($step.find("[name=gender]:checked").val()));
+              //return this.branch($step.find("[name=gender]:checked").val());
             }
           }
         });
@@ -29,26 +29,26 @@
         <input type="text" name="name" value="" />
       </div>
 
-      <div class="step transition" data-transition="gender">
+      <div class="step" data-action="gender">
         <p>What is your gender?</p>
         <label><input type="radio" name="gender" value="female" />Female</label>
         <label><input type="radio" name="gender" value="male" />Male</label>
       </div>
 
-      <div class="step submit" id="submit">
-        <p>Form is finished. Thanks!</p>
-      </div>
-
       <div class="branch" id="female">
-        <div class="step transition" data-transition="submit">
+        <div class="step" data-action="submit">
           <p>You selected female.</p>
         </div>
       </div>
 
       <div class="branch" id="male">
-        <div class="step transition" data-transition="submit">
+        <div class="step" data-action="submit">
           <p>You selected male.</p>
         </div>
+      </div>
+
+      <div class="step submit" id="submit">
+        <p>Form is finished. Thanks!</p>
       </div>
 
       <div class="navigation">
