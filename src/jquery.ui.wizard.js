@@ -41,16 +41,21 @@
       initialStep: 0,
       /* Transition Actions */
       action: "data-action",
-      actions: {}
+      actions: {},
+      defaultAction: null
     },
 
     /**
-     * Set up the wizard.
+     * Set up the wizard. Only called once.
      *
      * @private
      */
     _create: function() {
       var self = this;
+
+      this._path = [];
+      this._currentIndex = -1;
+      this._validate = false;
 
       this._$wizard = $(this.element).addClass(this.options.wizard);
       this._$forward = $(this.options.forward);
@@ -69,90 +74,162 @@
         self.finish();
       });
 
+      if (this.element.elements) {
+        console.log("form!");
+      }
+    },
+
+    /**
+     * Update the wizard. Public constructor.
+     */
+    _init: function() {
+      if (!$.isFunction(this.options.defaultAction)) {
+        this.options.defaultAction = function($step) {
+          return this.index($step.nextAll(this.options.step));
+        };
+      }
+
       this.update();
 
       this.select(this.options.initialStep);
     },
 
-    _currentIndex: -1,
-
     /**
-     * Contains the index for each step the user has visited, in order.
-     */
-    _path: [],
-
-    /**
-     * Looks for a transition function to tell us where to go next.
+     * Looks for an action function to tell us where to go next.
      *
-     * @returns {number}
-     *    Returns the index of the step to transition to, or -1 if no index
-     *    was provided.
+     * @returns {Object}
      *
      * @private
      */
-    _transition: function() {
-      var index, action, actionFunc, response, responseType;
+    _action: function() {
+      var action, actionFunc, response, $step, step;
 
-      // We need an action to tell us what to do next
-      if ((action = this._$currentStep.attr(this.options.action))) {
-        // See if there is an action function with this name
-        if ((actionFunc = this.options.actions[action])) {
-          response = actionFunc.call(this, this._$currentStep);
-        } else {
-          response = action;
-        }
-//console.log(response);
-        // Response can be a step index, a step ID or a branch ID. If response
-        // is a branch, select the first step in that branch.
-        responseType = typeof response;
+      // If validation is enabled, make sure we can proceed
+      if (this._validate || this._$wizard.data("validator")) {
+        this._validate = true;
 
-        if (responseType == "number") {
-          response = this._search(response, this._$steps);
-        } else if (responseType == "string") {
-          response = this._search(response, this._$steps.add(this._$branches));
-        }
-//console.log(response);
-        if (response !== undefined && response.length) {
-          // Branch found, use first step
-          if (response.hasClass(this.options.branch.substr(1))) {
-            index = this.index(this.steps(response).filter(":first"));
-          }
-          // Step found
-          else if (response.hasClass(this.options.step.substr(1))) {
-            index = this.index(response);
-          }
+        // Validate the current step. If invalid, do not proceed.
+        if (!this._$currentStep.valid()) {
+          return false;
         }
       }
 
-      return index;
-    },
+      // Look for an action to help determine where to go next
+      if ((action = this._$currentStep.attr(this.options.action))) {
+        if ((actionFunc = this.options.actions[action])) {
+          // Action function found, use return value from function
+          response = actionFunc.call(this, this._$currentStep);
+        } else {
+          // No function found, use action as response
+          response = action;
+        }
+      } else {
+        action = "defaultAction";
+        response = this.options.defaultAction.call(this, this._$currentStep);
+      }
 
-    _search: function(search, $context) {
-      var $element, searchType = typeof search;
-//console.log("_search", search, $context);
-      if (searchType != "undefined" && $context.length) {
-        // Search by index
-        if (searchType == "number") {
-          $element = $context.eq(search);
+      // Response can be a step, a step index, a step ID, a branch or a
+      // branch ID. If response is a branch, the index of the first step
+      // of that branch will be used.
+      $step = this._search(response, typeof response == "number"
+        ? this._$steps : this._$steps.add(this._$branches));
+
+      // At this point, we should have found a jQuery object
+      if ($step !== undefined && $step.length) {
+        if ($step.hasClass(this.options.branch.substr(1))) {
+          // Branch found, use first step in branch
+          $step = this.steps($step).filter(":first");
         }
 
-        // Search by string
-        else if (searchType == "string") {
-          $element = $context.filter(
-            // Create ID from string with no pound
-            search.charAt(0) == "#" ? search : "#" + search
+        step = this.index($step);
+      }
+
+      // We should have a valid index at this point. If we don't, we have
+      // encountered an unexpected state within the plugin.
+      if (!this.isValid(step)) {
+        throw new Error(
+          'Unexpected state encountered: ' +
+          'action="' + action + '", ' +
+          'response="' + response + '", ' +
+          'step="' + step + '"'
+        );
+
+        // Return undefined
+        return;
+      }
+
+      // Return an object containing the index of the next step, and a jQuery
+      // object containing the next step element.
+      return { step : step, $step : $step };
+    },
+
+    /**
+     * Look for an element inside of another element.
+     */
+    _search: function(needle, haystack) {
+      var $found, $haystack = $(haystack), type = typeof needle;
+
+      if (type != "undefined" && $haystack.length) {
+        // Search by index
+        if (type == "number") {
+          $found = $haystack.eq(needle);
+        }
+
+        // Search by string (ID)
+        else if (type == "string") {
+          $found = $haystack.filter(
+            needle.charAt(0) == "#" ? needle : "#" + needle
           );
         }
 
-        // Search by jQuery object
-        else if (searchType == "object"
-          && search.hasOwnProperty
-          && search instanceof jQuery) {
-          $element = search;
+        // Search by object (DOM, jQuery)
+        else if (type == "object") {
+          // Extract DOM object from jQuery object
+          if (needle.hasOwnProperty
+            && needle instanceof jQuery
+            && needle.length) {
+            needle = needle.get(0);
+          }
+
+          // Make sure we have a DOM object
+          if (needle.nodeType) {
+            $found = $haystack.filter(function() {
+              return this === needle;
+            });
+          }
         }
       }
 
-      return $element;
+      return $found;
+    },
+
+    /**
+     * Find the step in a branch. Optionally, return the index for that step
+     * instead of the step itself, either absolutely (index of step relative
+     * to all steps) or relatively (index of step relative to the steps in the
+     * current branch).
+     */
+    _step: function(step, branch, index, relative) {
+      // Allow for the omission of branch
+      if (typeof branch === "boolean") {
+        relative = index;
+        index = branch;
+        branch = undefined;
+      }
+
+      // Find the step within the specified branch, or within all steps if
+      // a specific branch was not given.
+      var $steps = branch ? this.steps(branch) : this._$steps,
+        $step = this._search(step, $steps);
+
+      // Return the index of the step instead of the step itself
+      if (index === true) {
+        return $step && $step.length
+          ? (relative === true ? $steps : this._$steps).index($step)
+          : -1;
+      }
+
+      return $step;
     },
 
     /**
@@ -172,7 +249,7 @@
         $branch = $step.parent(),
         // The last step on the current branch
         lastStep = this.index(this.steps($branch).filter(":last"));
-//console.log("update", step, $step, lastStep);
+
       // Proceed only if we have already set the current step
       if (this._$currentStep) {
         // Remove current step if going backwards
@@ -241,7 +318,7 @@
     },
 
     /**
-     * 
+     * Find a branch in the wizard
      */
     branch: function(branch) {
       return this._search(branch, this._$branches);
@@ -259,31 +336,29 @@
      * otherwise uses the next step in the current branch.
      */
     forward: function() {
-      var step = this._transition();
+      var action;
 
-      if (!this.isValidIndex(step)) {
-        step = this.index(this._$currentStep.nextAll(this.options.step));
+      if ((action = this._action())) {
+        this._update(action.step, action.$step);
+      }
+    },
+
+    /**
+     * Convenience method for returning the index of a step.
+     */
+    index: function(step, branch, relative) {
+      return this._step(step, branch, true, relative);
+    },
+
+    /**
+     * Checks whether a step is valid.
+     */
+    isValid: function(step) {
+      if (typeof step !== "number") {
+        step = this.index(step);
       }
 
-      this.select(step);
-    },
-
-    index: function(step, branch, andStep) {
-      var searchType = typeof search, $step = this.step(step, branch);
-
-      // The only sure way to determine whether or not we have found a step
-      // in the wizard is to select an element and test for length. We check
-      // for these first because if we pass undefined to index, as of jQuery
-      // 1.4 it will return the index of the element calling the function.
-      step = $step && $step.length ? this._$steps.index($step) : -1;
-
-      // Returns only the index by default. Returns the step associated with
-      // the index if andElement flag is true -- mostly used internally.
-      return andStep ? { step : step, $step : $step } : step;
-    },
-
-    isValidIndex: function(index) {
-      return index !== undefined && index >= 0 && index < this._stepCount;
+      return step !== undefined && step >= 0 && step < this._steps;
     },
 
     /**
@@ -300,23 +375,32 @@
      * @param {number|String} step
      *    The index or string ID of the step to select.
      */
-    select: function(step) {
-      var selected = this.index(step, undefined, true);
+    select: function(step, branch) {
+      var index = this.index(step, branch);
 
-      if (this.isValidIndex(selected.step)
-        && selected.step !== this._currentStep) {
-        this._update(selected.step, selected.$step);
+      if (this.isValid(index)) {
+        if (index !== this._currentStep) {
+          this._update(index, this._$steps.eq(index));
+        }
+      } else {
+        throw new Error('Unable to find step "' + step + '"');
       }
     },
 
+    /**
+     * The number of steps in the wizard.
+     */
     size: function() {
-      return this._stepCount;
+      return this._steps;
     },
 
     step: function(step, branch) {
-      return this._search(step, this.steps(branch));
+      return this._step(step, branch);
     },
 
+    /**
+     * Return all the steps in a branch.
+     */
     steps: function(branch) {
       return branch ? this.branch(branch).find(this.options.step) : this._$steps;
     },
@@ -326,8 +410,10 @@
      */
     update: function() {
       this._$steps = this._$wizard.find(this.options.step);
-      this._$branches = this._$wizard.find(this.options.branch);
-      this._stepCount = this._$steps.length;
+      this._steps = this._$steps.length;
+
+      // Branches includes the Wizard itself (default branch)
+      this._$branches = this._$wizard.find(this.options.branch).andSelf();
     }
   });
 })(jQuery);

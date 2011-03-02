@@ -13,7 +13,7 @@
         jQuery("#wizard").wizard({
           actions: {
             gender: function($step) {
-              return this.branch($step.find("[name=gender]:checked").val());
+              return $step.find("[name=gender]:checked").val();
             }
           }
         });
