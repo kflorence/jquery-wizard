@@ -7,16 +7,17 @@
 
     <script language="javascript" type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.0/jquery.min.js"></script>
     <script language="javascript" type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/jquery-ui.min.js"></script>
+    <script language="javascript" type="text/javascript" src="js/jquery.validate.js"></script>
     <script language="javascript" type="text/javascript" src="../src/jquery.ui.wizard.js"></script>
     <script language="javascript" type="text/javascript">
-      jQuery(function() {
-        jQuery("#wizard").wizard({
+      jQuery(function($) {
+        $("#wizard").wizard({
           actions: {
             gender: function($step) {
               return $step.find("[name=gender]:checked").val();
             }
           }
-        });
+        }).validate();
       });
     </script>
   </head>
@@ -26,13 +27,13 @@
     <form name="wizardForm" id="wizard">
       <div class="step">
         <p>What is your first name?</p>
-        <input type="text" name="name" value="" />
+        <input type="text" name="name" value="" class="required" />
       </div>
 
       <div class="step" data-action="gender">
         <p>What is your gender?</p>
-        <label><input type="radio" name="gender" value="female" />Female</label>
-        <label><input type="radio" name="gender" value="male" />Male</label>
+        <label><input type="radio" name="gender" value="female" class="required" />Female</label>
+        <label><input type="radio" name="gender" value="male" class="required" />Male</label>
       </div>
 
       <div class="branch" id="female">

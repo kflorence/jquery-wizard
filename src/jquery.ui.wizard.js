@@ -108,8 +108,8 @@
       if (this._validate || this._$wizard.data("validator")) {
         this._validate = true;
 
-        // Validate the current step. If invalid, do not proceed.
-        if (!this._$currentStep.valid()) {
+        // Validate the inputs on the current step. If invalid, do not proceed.
+        if (!this._$currentStep.find(":input").valid()) {
           return false;
         }
       }
