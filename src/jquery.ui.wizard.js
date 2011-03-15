@@ -90,7 +90,7 @@
       }
 
       this.update();
-
+      this._$steps.hide();
       this.select(this.options.initialStep);
     },
 
