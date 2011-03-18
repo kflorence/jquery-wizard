@@ -3,7 +3,7 @@
     <title>jQuery.ui.wizard</title>
 
     <link rel="stylesheet" type="text/css" href="css/styles.css" />
-    <link rel="stylesheet" type="text/css" href="../src/jquery.ui.wizard.css" />
+    <!--<link rel="stylesheet" type="text/css" href="../src/jquery.ui.wizard.css" />-->
 
     <script language="javascript" type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.0/jquery.min.js"></script>
     <script language="javascript" type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/jquery-ui.min.js"></script>
@@ -43,12 +43,12 @@
       </div>
 
       <div class="branch" id="male">
-        <div class="step" data-action="submit">
+        <div class="step noForward" data-action="submit">
           <p>You selected male.</p>
         </div>
       </div>
 
-      <div class="step submit" id="submit">
+      <div class="step submitStep" id="submit">
         <p>Form is finished. Thanks!</p>
       </div>
 
@@ -56,7 +56,7 @@
         <ul class="clearfix">
           <li><button type="button" name="backward" class="backward">Backward</button></li>
           <li><button type="button" name="forward" class="forward">Forward</button></li>
-          <li><button type="submit" name="finish" class="finish">Finish</button></li>
+          <li><button type="submit" name="submit" class="submit">Submit</button></li>
         </ul>
       </div>
     </form>
