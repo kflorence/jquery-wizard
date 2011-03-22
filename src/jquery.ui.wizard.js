@@ -53,9 +53,6 @@
 						duration: 0
 					}
 				}
-			},
-			events: {
-				
 			}
 		},
 
@@ -191,7 +188,8 @@
 			var self = this,
 				forward = index > this._currentIndex,
 				$branch = $step.parent(options.elements.branch),
-				lastStepIndex = this.index(this.steps($branch).filter(":last")),
+				$last = this.steps($branch).filter(":last"),
+				lastIndex = this.index($last),
 				// Fixes #3583 - http://bugs.jquery.com/ticket/3583
 				hideOptions = $.extend({}, options.animations.hide.options),
 				showOptions = $.extend({}, options.animations.show.options);
@@ -221,10 +219,12 @@
 			}
 
 			if ($step.hasClass(classes.stop)
-				|| (index === lastStepIndex && !$step.attr(options.action))) {
+				|| (index === lastIndex && !$step.attr(options.action))) {
 				this._$forward.addClass(classes.disabled).attr(disabled, true);
+				this._progress = (index / lastIndex + 1) * 100;
 			} else {
 				this._$forward.removeClass(classes.disabled).removeAttr(disabled);
+				this._progress = (index / this._totalSteps) * 100;
 			}
 
 			if ($step.hasClass(classes.submit)) {
@@ -236,6 +236,13 @@
 			this._$currentStep = $step;
 			this._currentIndex = index;
 			this._$currentBranch = $branch;
+
+			this._trigger("selected", undefined, {
+				step: $step,
+				branch: $branch,
+				index: index,
+				progress: this._progress
+			});
 		},
 
 		_step: function(step, branch, index, relative) {
@@ -274,7 +281,7 @@
 			var action;
 
 			if ((action = this._action())) {
-				this._select(action.step, action.$step);
+				this._select(action.index, action.step);
 			}
 		},
 
@@ -296,7 +303,7 @@
 		},
 
 		progress: function() {
-			// TODO
+			return this._progress;
 		},
 
 		select: function(step, branch) {

@@ -16,6 +16,9 @@
             gender: function($step) {
               return $step.find("[name=gender]:checked").val();
             }
+          },
+          selected: function(step, branch, index, progress) {
+            console.log(progress);
           }
         }).validate();
       });
