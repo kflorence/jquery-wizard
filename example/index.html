@@ -25,7 +25,7 @@
     <h1>jQuery.ui.wizard</h1>
 
     <form name="wizardForm" id="wizard">
-      <div class="step">
+      <div class="step start">
         <p>What is your first name?</p>
         <input type="text" name="name" value="" class="required" />
       </div>
@@ -37,18 +37,18 @@
       </div>
 
       <div class="branch" id="female">
-        <div class="step" data-action="submit">
+        <div class="step" data-action="finish">
           <p>You selected female.</p>
         </div>
       </div>
 
       <div class="branch" id="male">
-        <div class="step noForward" data-action="submit">
+        <div class="step stop" data-action="finish">
           <p>You selected male.</p>
         </div>
       </div>
 
-      <div class="step submitStep" id="submit">
+      <div class="step stop submit" id="finish">
         <p>Form is finished. Thanks!</p>
       </div>
 
@@ -58,6 +58,7 @@
           <li><button type="button" name="forward" class="forward">Forward</button></li>
           <li><button type="submit" name="submit" class="submit">Submit</button></li>
         </ul>
+        <p>Progress: <span id="progress"></span></p>
       </div>
     </form>
   </body>
