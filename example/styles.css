@@ -13,6 +13,17 @@
   margin-right: 10px;
 }
 
+label.error {
+  color: #ff0000;
+  margin-left: 10px;
+}
+
+#progressbar {
+  margin: 10px 0;
+  width: 400px;
+  height: 15px;
+}
+
 .clearfix:before, .clearfix:after {
   content: "\0020";
   display: block;

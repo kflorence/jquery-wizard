@@ -2,57 +2,75 @@
   <head>
     <title>jQuery.ui.wizard</title>
 
-    <link rel="stylesheet" type="text/css" href="css/styles.css" />
-    <!--<link rel="stylesheet" type="text/css" href="../src/jquery.ui.wizard.css" />-->
+    <link rel="stylesheet" type="text/css" href="styles.css" />
+    <link rel="stylesheet" type="text/css"
+      href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.11/themes/smoothness/jquery-ui.css" />
 
-    <script language="javascript" type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.0/jquery.min.js"></script>
-    <script language="javascript" type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/jquery-ui.min.js"></script>
+    <script language="javascript" type="text/javascript"
+      src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.0/jquery.min.js"></script>
+      <script language="javascript" type="text/javascript"
+        src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/jquery-ui.min.js"></script>
     <script language="javascript" type="text/javascript" src="js/jquery.validate.js"></script>
     <script language="javascript" type="text/javascript" src="../src/jquery.ui.wizard.js"></script>
     <script language="javascript" type="text/javascript">
       jQuery(function($) {
         $("#wizard").wizard({
           actions: {
-            gender: function($step) {
-              return $step.find("[name=gender]:checked").val();
+            branch: function($step) {
+              return "branch" + $step.find("[name=branch]:checked").val();
             }
           },
-          selected: function(step, branch, index, progress) {
-            console.log(progress);
+          select: function(event, data) {
+            $("#progressbar").progressbar("value", data.progress);
+          },
+          submit: function(event) {
+            alert(
+              "Normally the form would submit here, " +
+              "but we have added a 'submit' callback " +
+              "handler that cancels the submission."
+            );
+
+            // Don't submit
+            return false;
           }
         }).validate();
+
+        $("#progressbar").progressbar();
       });
     </script>
   </head>
   <body>
     <h1>jQuery.ui.wizard</h1>
 
+    <h3>Progress</h3>
+    <div id="progressbar"></div>
+
     <form name="wizardForm" id="wizard">
       <div class="step start">
-        <p>What is your first name?</p>
+        <p>Enter a value into the text field below.</p>
         <input type="text" name="name" value="" class="required" />
       </div>
 
-      <div class="step" data-action="gender">
-        <p>What is your gender?</p>
-        <label><input type="radio" name="gender" value="female" class="required" />Female</label>
-        <label><input type="radio" name="gender" value="male" class="required" />Male</label>
+      <div class="step" data-action="branch">
+        <p>Choose branch:</p>
+        <label><input type="radio" name="branch" value="1" />Branch One</label><br />
+        <label><input type="radio" name="branch" value="2" />Branch Two</label><br />
       </div>
 
-      <div class="branch" id="female">
+      <div class="branch" id="branch1">
         <div class="step" data-action="finish">
-          <p>You selected female.</p>
+          <p>This is branch one. Through it you may continue to the submit step.</p>
         </div>
       </div>
 
-      <div class="branch" id="male">
-        <div class="step stop" data-action="finish">
-          <p>You selected male.</p>
+      <div class="branch" id="branch2">
+        <div class="step stop">
+          <p>This is branch two. It is a dead end.</p>
         </div>
       </div>
 
       <div class="step stop submit" id="finish">
-        <p>Form is finished. Thanks!</p>
+        <p>This is a submit step, and the final step of the form.</p>
       </div>
 
       <div class="navigation">
@@ -61,7 +79,6 @@
           <li><button type="button" name="forward" class="forward">Forward</button></li>
           <li><button type="submit" name="submit" class="submit">Submit</button></li>
         </ul>
-        <p>Progress: <span id="progress"></span></p>
       </div>
     </form>
   </body>
