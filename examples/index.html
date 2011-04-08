@@ -1,85 +1,141 @@
+<!doctype html>
+<!-- vim: set noexpandtab: -->
 <html>
-  <head>
-    <title>jQuery.ui.wizard</title>
+	<head>
+		<title>jQuery.ui.wizard</title>
 
-    <link rel="stylesheet" type="text/css" href="styles.css" />
-    <link rel="stylesheet" type="text/css"
-      href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.11/themes/smoothness/jquery-ui.css" />
+		<link rel="stylesheet" type="text/css" href="styles.css" />
+		<link rel="stylesheet" type="text/css" href="externals/jquery/ui/themes/smoothness/jquery-ui.smoothness.css" />
 
-    <script language="javascript" type="text/javascript"
-      src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.0/jquery.min.js"></script>
-      <script language="javascript" type="text/javascript"
-        src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/jquery-ui.min.js"></script>
-    <script language="javascript" type="text/javascript" src="js/jquery.validate.js"></script>
-    <script language="javascript" type="text/javascript" src="../src/jquery.ui.wizard.js"></script>
-    <script language="javascript" type="text/javascript">
-      jQuery(function($) {
-        $("#wizard").wizard({
-          actions: {
-            branch: function($step) {
-              return "branch" + $step.find("[name=branch]:checked").val();
-            }
-          },
-          select: function(event, data) {
-            $("#progressbar").progressbar("value", data.progress);
-          },
-          submit: function(event) {
-            alert(
-              "Normally the form would submit here, " +
-              "but we have added a 'submit' callback " +
-              "handler that cancels the submission."
-            );
+		<!-- Required scripts -->
+		<script language="javascript" type="text/javascript" src="externals/jquery/jquery-1.4.min.js"></script>
+		<script language="javascript" type="text/javascript" src="externals/jquery/ui/jquery-ui-1.8.11.min.js"></script>
 
-            // Don't submit
-            return false;
-          }
-        }).validate();
+		<!-- Optional scripts -->
+		<script language="javascript" type="text/javascript" src="externals/jquery/form/jquery.form.js"></script>
+		<script language="javascript" type="text/javascript" src="externals/jquery/validate/jquery.validate.js"></script>
 
-        $("#progressbar").progressbar();
-      });
-    </script>
-  </head>
-  <body>
-    <h1>jQuery.ui.wizard</h1>
+		<!-- The plugin -->
+		<script language="javascript" type="text/javascript" src="../src/jquery.ui.wizard.js"></script>
 
-    <h3>Progress</h3>
-    <div id="progressbar"></div>
+		<!-- Demo -->
+		<script language="javascript" type="text/javascript">
+			jQuery(function($) {
+				// Example 1: Basic wizard
+				$("#example-1 form").wizard();
 
-    <form name="wizardForm" id="wizard">
-      <div class="step start">
-        <p>Enter a value into the text field below.</p>
-        <input type="text" name="name" value="" class="required" />
-      </div>
+				// Example 2: Basic wizard with progress bar
+				$("#progressbar").progressbar();
 
-      <div class="step" data-action="branch">
-        <p>Choose branch:</p>
-        <label><input type="radio" name="branch" value="1" />Branch One</label><br />
-        <label><input type="radio" name="branch" value="2" />Branch Two</label><br />
-      </div>
+				$("#example-2 form").wizard({
+					select: function(event, data) {
+						$("#progressbar").progressbar("value", data.progress);
+						$("#location").text("(" + data.current + "/" + data.possible + ")");
+					}
+				});
 
-      <div class="branch" id="branch1">
-        <div class="step" data-action="finish">
-          <p>This is branch one. Through it you may continue to the submit step.</p>
-        </div>
-      </div>
+				// Example 3: Basic branching wizard
+				$("#example-3 form").wizard({
+					actions: {
+						color: function($step) {
+							return $("[name=color]:checked", $step).val();
+						}
+					}
+				});
+			});
+		</script>
+	</head>
+	<body>
+		<div id="wrapper">
+			<h1>jQuery.ui.wizard Examples</h1>
 
-      <div class="branch" id="branch2">
-        <div class="step stop">
-          <p>This is branch two. It is a dead end.</p>
-        </div>
-      </div>
+			<div class="example" id="example-1">
+				<h2>Basic Wizard</h2>
 
-      <div class="step stop submit" id="finish">
-        <p>This is a submit step, and the final step of the form.</p>
-      </div>
+				<form name="example-1">
+					<div class="step">
+						<p>This is a basic wizard. It contains three steps. You are on step one.</p>
+					</div>
 
-      <div class="navigation">
-        <ul class="clearfix">
-          <li><button type="button" name="backward" class="backward">Backward</button></li>
-          <li><button type="button" name="forward" class="forward">Forward</button></li>
-          <li><button type="submit" name="submit" class="submit">Submit</button></li>
-        </ul>
-      </div>
-    </form>
-  </body>
+					<div class="step">
+						<p>Now you're on step two. One step to go!</p>
+					</div>
+
+					<div class="step">
+						<p>This is step three, the last step of the wizard. All done!</p>
+					</div>
+
+					<div class="navigation">
+						<ul class="clearfix">
+							<li><button type="button" name="backward" class="backward">Backward</button></li>
+							<li><button type="button" name="forward" class="forward">Forward</button></li>
+						</ul>
+					</div>
+				</form>
+			</div>
+
+			<div class="example" id="example-2">
+				<h2>Basic Wizard With Progress Bar</h2>
+
+				<h3>Progress <span id="location"></span></h3>
+				<div id="progressbar"></div>
+
+				<form name="example-2">
+					<div class="step">
+						<p>This basic wizard has a progress bar attached to it.</p>
+					</div>
+
+					<div class="step">
+						<p>Note your progress in the progress bar above.</p>
+					</div>
+
+					<div class="step">
+						<p>You have reached the end of this wizard. Yippee!</p>
+					</div>
+
+					<div class="navigation">
+						<ul class="clearfix">
+							<li><button type="button" name="backward" class="backward">Backward</button></li>
+							<li><button type="button" name="forward" class="forward">Forward</button></li>
+						</ul>
+					</div>
+				</form>
+			</div>
+
+			<div class="example" id="example-3">
+				<h2>Branching Wizard</h2>
+
+				<form name="example-3">
+					<div class="step">
+						<p>This is a branching wizard. You will see different steps depending on your answers.</p>
+					</div>
+
+					<div class="step" data-action="color">
+						<p>Which color do you like best?</p>
+						<label for="colorPink"><input type="radio" name="color" value="pink" id="colorPink" />Pink</label>
+						<label for="colorBlue"><input type="radio" name="color" value="blue" id="colorBlue" />Blue</label>
+					</div>
+
+					<div class="branch" id="pink">
+						<div class="step">
+							<p>You have chosen the color pink.</p>
+						</div>
+					</div>
+
+					<div class="branch" id="blue">
+						<div class="step">
+							<p>You have chosen the color blue.</p>
+						</div>
+					</div>
+
+					<div class="navigation">
+						<ul class="clearfix">
+							<li><button type="button" name="backward" class="backward">Backward</button></li>
+							<li><button type="button" name="forward" class="forward">Forward</button></li>
+						</ul>
+					</div>
+				</form>
+			</div>
+		</div>
+	</body>
 </html>

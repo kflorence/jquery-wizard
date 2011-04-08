@@ -1,3 +1,34 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: helvetica, sans-serif;
+  font-size: 62.5%;
+}
+
+#wrapper {
+  font-size: 1.2em;
+  line-height: 1.6em;
+}
+
+h1 {
+  background-color: #333;
+  color: #fff;
+  font-size: 2.0em;
+  margin: 0;
+  padding: 10px;
+}
+
+h3 span {
+  font-weight: normal;
+}
+
+.example {
+  background-color: #eee;
+  border: #aaa 1px solid;
+  margin: 10px;
+  padding: 10px;
+}
+
 .navigation {
   margin-top: 10px;
 }

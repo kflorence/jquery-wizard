@@ -11,25 +11,30 @@
  */
 (function($, undefined) {
 	var options, classes, elements,
+		// For unique identifiers
+		count = 0,
 		// Globalize re-used values for better minification
 		__null = null,
 		__true = true,
 		__false = false,
 		__number = "number",
 		__default = "default",
+		wizard = "wizard",
 		click = "click",
 		submit = "submit",
 		disabled = "disabled",
 		backward = "backward",
 		forward = "forward",
 		first = "first",
-		last = "last";
+		last = "last",
+		id = "id";
 
-	$.widget("ui.wizard", {
+	$.widget("ui." + wizard, {
 		options: {
 			step: 0,
 			actions: {
 				_default: function() {
+					// Returns index of next step in branch by default
 					return this.index(this._$step.nextAll(classes.step));
 				}
 			},
@@ -107,7 +112,12 @@
 		_create: function() {
 			this._enabled = {};
 			this._$wizard = this.element;
-			this._$form = this.element[0].elements.length
+
+			if (!this._$wizard.attr(id)) {
+				this._$wizard.attr(id, wizard + count++);
+			}
+
+			this._$form = this.element[0].elements
 				? this.element : this.element.find("form");
 		},
 
@@ -121,6 +131,7 @@
 
 			this._index = -1;
 			this._progress = 0;
+			this._possible = 0;
 			this._activated = {
 				steps: [],
 				branches: []
@@ -131,21 +142,21 @@
 			// Add branch class to step container for default branch
 			this._$steps.hide().parent().addClass(elements.branch.substr(1));
 
-			this._$forward = $(elements.forward).unbind(click)
+			this._$forward = $(elements.forward, this._$wizard).unbind(click)
 				.bind(click, function(event) {
 					self.forward();
 					event.preventDefault();
 				}
 			);
 
-			this._$backward = $(elements.backward).unbind(click)
+			this._$backward = $(elements.backward, this._$wizard).unbind(click)
 				.bind(click, function(event) {
 					self.backward();
 					event.preventDefault();
 				}
 			);
 
-			this._$submit = $(elements.submit).unbind(click)
+			this._$submit = $(elements.submit, this._$wizard).unbind(click)
 				.bind(click, function(event) {
 					return self.submit(event);
 				}
@@ -188,7 +199,7 @@
 			var self = this,
 				forward = index > this._index,
 				$branch = $step.parent(elements.branch),
-				branch = $branch.attr("id") || __default,
+				branch = $branch.attr(id),
 				// Fixes #3583 - http://bugs.jquery.com/ticket/3583
 				hideOptions = $.extend({}, options.animations.hide.options),
 				showOptions = $.extend({}, options.animations.show.options),
@@ -201,11 +212,11 @@
 					this._activated.steps.pop();
 
 					if (branch !== this._branch) {
-						var idx = $.inArray(this._branch, this._activated.branches);
+						var branchIndex = $.inArray(this._branch, this._activated.branches);
 
 						// Don't remove initial branch
-						if (idx > 0) {
-							this._activated.branches.splice(idx, 1);
+						if (branchIndex > 0) {
+							this._activated.branches.splice(branchIndex, 1);
 						}
 					}
 				}
@@ -236,19 +247,8 @@
 			if ($step.hasClass(classes.stop)
 				|| (!$step.attr(options.actionAttr) && index === maxBranchIndex)) {
 				this._$forward.addClass(classes.disabled).attr(disabled, __true);
-
-				this._progress = 100;
 			} else {
 				this._$forward.removeClass(classes.disabled).removeAttr(disabled);
-
-				var possible = 0;
-				$.each(this._activated.branches, function(i, branch) {
-					possible += self.steps(branch).length;
-				});
-
-				this._progress = Math.round(
-					((this._activated.steps.length - 1) / (possible - 1)) * 100
-				);
 			}
 
 			if ($step.hasClass(classes.submit)) {
@@ -262,10 +262,21 @@
 			this._$branch = $branch;
 			this._branch = branch;
 
+			var possible = 0;
+			$.each(this._activated.branches, function(i, branch) {
+				possible += self.steps(branch).length;
+			});
+
+			this._current = (this._activated.steps.length - 1);
+			this._possible = (possible - 1);
+			this._progress = Math.round((this._current / this._possible) * 100);
+
 			this._trigger("select", __null, {
 				step: $step,
-				branch: $branch,
 				index: index,
+				branch: $branch,
+				current: this._current,
+				possible: this._possible,
 				progress: this._progress
 			});
 		},
@@ -323,6 +334,10 @@
 				: this._$branch;
 		},
 
+		current: function() {
+			return this._current;
+		},
+
 		forward: function() {
 			var action;
 
@@ -342,6 +357,10 @@
 
 		isValidStep: function(step) {
 			return this.isValidIndex(this.index(step));
+		},
+
+		possible: function() {
+			return this._possible;
 		},
 
 		progress: function() {
