@@ -27,9 +27,10 @@
 		forward = "forward",
 		first = "first",
 		last = "last",
-		id = "id";
+		id = "id",
+		ui = "ui";
 
-	$.widget("ui." + wizard, {
+	$.widget([ui, wizard].join("."), {
 		options: {
 			step: 0,
 			actions: {
@@ -111,12 +112,7 @@
 
 		_create: function() {
 			this._enabled = {};
-			this._$wizard = this.element;
-
-			if (!this._$wizard.attr(id)) {
-				this._$wizard.attr(id, wizard + count++);
-			}
-
+			this._$wrapper = this.element;
 			this._$form = this.element[0].elements
 				? this.element : this.element.find("form");
 		},
@@ -137,26 +133,37 @@
 				branches: []
 			};
 
+			// Wizard is step container and also the default branch
+			this._$wizard = this._$wrapper.find(elements.step).eq(0).parent()
+				.addClass([ui, wizard].join("-"))
+				.addClass(elements.branch.substr(1));
+
+			// All branches must have a unique ID. Assign one if needed.
+			if (!this._$wizard.attr(id)) {
+				this._$wizard.attr(id, [wizard, count++].join("-"));
+			}
+
 			this.update();
+			this._$steps.hide();
 
-			// Add branch class to step container for default branch
-			this._$steps.hide().parent().addClass(elements.branch.substr(1));
-
-			this._$forward = $(elements.forward, this._$wizard).unbind(click)
+			this._$forward = $(elements.forward, this._$wrapper)
+				.unbind(click)
 				.bind(click, function(event) {
 					self.forward();
 					event.preventDefault();
 				}
 			);
 
-			this._$backward = $(elements.backward, this._$wizard).unbind(click)
+			this._$backward = $(elements.backward, this._$wrapper)
+				.unbind(click)
 				.bind(click, function(event) {
 					self.backward();
 					event.preventDefault();
 				}
 			);
 
-			this._$submit = $(elements.submit, this._$wizard).unbind(click)
+			this._$submit = $(elements.submit, this._$wrapper)
+				.unbind(click)
 				.bind(click, function(event) {
 					return self.submit(event);
 				}
@@ -308,9 +315,8 @@
 			var $inputs;
 
 			if (this._enabled.validate
-				|| (this._enabled.validate = !!this._$wizard.data("validator"))) {
-				$scope = $scope && $scope.length ? $scope : this._$wizard;
-				$inputs = $scope.find(options.validateOn);
+				|| (this._enabled.validate = !!this._$form.data("validator"))) {
+				$inputs = ($scope ? $scope : this._$form).find(options.validateOn);
 
 				if ($inputs.length && !$inputs.valid()) {
 					return __false;
@@ -401,8 +407,7 @@
 		submit: function(event) {
 			return this._validates() &&
 				this._trigger(submit, event || _null, {
-					form: this._$form,
-					wizard: this._$wizard
+					form: this._$form
 				});
 		},
 

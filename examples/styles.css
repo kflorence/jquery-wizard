@@ -29,6 +29,35 @@ h3 span {
   padding: 10px;
 }
 
+.ui-wizard .step {
+  background-color: #fff;
+  border: #aaa 1px solid;
+  margin: 10px 0;
+  padding: 10px;
+}
+
+.ui-wizard .pink {
+  background-color: #E88798;
+  border-color: #fff;
+  color: #fff;
+}
+
+.ui-wizard .pink p {
+  font-size: 1.4em;
+  font-weight: bold;
+}
+
+.ui-wizard .blue {
+  background-color: #80ADDA;
+  border-color: #fff;
+  color: #fff;
+}
+
+.ui-wizard .blue p {
+  font-size: 1.4em;
+  font-weight: bold;
+}
+
 .navigation {
   margin-top: 10px;
 }
