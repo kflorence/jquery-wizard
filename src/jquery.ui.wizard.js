@@ -1,5 +1,4 @@
 // vim: set noexpandtab:
-
 /**
  * A jQuery UI wizard that supports branching.
  *
@@ -10,51 +9,17 @@
  * Dual licensed under the MIT and BSD licenses.
  */
 (function($, undefined) {
-	var options, classes, elements,
-		// For unique identifiers
-		count = 0,
-		// Globalize re-used values for better minification
-		__null = null,
-		__true = true,
-		__false = false,
-		__number = "number",
-		__default = "default",
-		wizard = "wizard",
-		click = "click",
-		submit = "submit",
-		disabled = "disabled",
-		backward = "backward",
-		forward = "forward",
-		first = "first",
-		last = "last",
-		id = "id",
-		ui = "ui";
+	var count = 0, click = "click", disabled = "disabled",
+		namespace = "ui-wizard", classes = {}, selectors = {};
 
-	$.widget([ui, wizard].join("."), {
+	$.each(["branch", "form", "header", "step"], function() {
+		selectors[this] = "." + (classes[this] = namespace + "-" + this);
+	});
+
+	$.widget(namespace.replace("-", "."), {
 		options: {
-			step: 0,
-			actions: {
-				_default: function() {
-					// Returns index of next step in branch by default
-					return this.index(this._$step.nextAll(classes.step));
-				}
-			},
-			actionAttr: "data-action",
-			validateOn: ":input",
-			elements: {
-				step: ".step",
-				branch: ".branch",
-				forward: "." + forward,
-				backward: "." + backward,
-				submit: ":" + submit
-			},
-			classes: {
-				stop: "stop",
-				start: "start",
-				submit: submit,
-				current: "current",
-				disabled: disabled
-			},
+			actions: {},
+			actionAttribute: "data-action",
 			animations: {
 				show: {
 					properties: {
@@ -72,31 +37,48 @@
 						duration: 0
 					}
 				}
-			}
+			},
+			branches: ".branch",
+			backward: ".backward",
+			defaultAction: function($step) {
+				return this.index($step.nextAll(selectors.step));
+			},
+			forward: ".forward",
+			headers: ".header",
+			initialStep: 0,
+			stepAttributes: {
+				current: "current",
+				stop: "stop",
+				submit: "submit"
+			},
+			steps: ".step",
+			submit: ":submit",
+			wrappingElement: "<div>"
 		},
 
 		_action: function() {
-			var $found, index,
-				action = this._$step.attr(options.actionAttr) || "_" + __default,
-				func = options.actions[action],
-				response = $.isFunction(func) ? func.call(this, this._$step) : action;
-
-			if (!this._validates(this._$step)) {
+			if (!this._validates()) {
 				return;
 			}
 
-			$found = this._search(response, typeof response == __number
+			var $found, index,
+				o = this.options,
+				action = this._$step.attr(o.actionAttribute),
+				func = action ? o.actions[action] : o.defaultAction,
+				response = $.isFunction(func) ? func.call(this, this._$step) : action;
+
+			$found = this._search(response, typeof response == "number"
 				? this._$steps : this._$steps.add(this._$branches));
 
 			if ($found !== undefined && $found.length) {
-				if ($found.hasClass(elements.branch.substr(1))) {
-					$found = this.steps($found).filter(":" + first);
+				if ($found.hasClass(classes.branch)) {
+					$found = this.steps($found).filter(":first");
 				}
 
 				index = this.index($found);
 			}
 
-			if (!this.isValidIndex(index)) {
+			if (!this.isValidStepIndex(index)) {
 				throw new Error(
 					'Unexpected state encountered: ' +
 					'action="' + action + '", ' +
@@ -107,76 +89,66 @@
 				return;
 			}
 
-			return { index: index, step: $found };
+			return {
+				$step: $found,
+				stepIndex: index
+			};
 		},
 
 		_create: function() {
-			this._enabled = {};
-			this._$wrapper = this.element;
-			this._$form = this.element[0].elements
-				? this.element : this.element.find("form");
+			this._pluginsDetected = {};
+
+			this.element.addClass(namespace
+				+ " ui-widget ui-widget-content ui-corner-all");
 		},
 
 		_init: function() {
-			var self = this;
+			var self = this, o = this.options;
 
-			// Aids minification and convenience
-			options = this.options;
-			classes = options.classes;
-			elements = options.elements;
+			this._activated = { $steps: [], $branches: [] };
 
-			this._index = -1;
-			this._progress = 0;
-			this._possible = 0;
-			this._activated = {
-				steps: [],
-				branches: []
-			};
+			this._$form = this.element.find("form").addClass(classes.form);
+			this._$branches = this.element.find(o.branches).addClass(classes.branch);
+			this._$headers = this.element.find(o.headers)
+				.addClass(classes.header + " ui-widget-header ui-helper-reset ui-corner-all");
+			this._$steps = this.element.find(o.steps).hide()
+				.addClass(classes.step + " ui-widget-content ui-corner-all");
+			this._totalSteps = this._$steps.length;
 
-			// Wizard is step container and also the default branch
-			this._$wizard = this._$wrapper.find(elements.step).eq(0).parent()
-				.addClass([ui, wizard].join("-"))
-				.addClass(elements.branch.substr(1));
+			this._$defaultBranch = this._$steps.eq(0).parent().wrapInner(
+				$(o.wrappingElement)
+					.addClass(classes.branch)
+					.attr("id", namespace + "-" + count++)
+			);
 
-			// All branches must have a unique ID. Assign one if needed.
-			if (!this._$wizard.attr(id)) {
-				this._$wizard.attr(id, [wizard, count++].join("-"));
-			}
-
-			this.update();
-			this._$steps.hide();
-
-			this._$forward = $(elements.forward, this._$wrapper)
-				.unbind(click)
-				.bind(click, function(event) {
+			this._$forward = $(o.forward, this.element)
+				.unbind(click).bind(click, function(event) {
 					self.forward();
 					event.preventDefault();
 				}
 			);
 
-			this._$backward = $(elements.backward, this._$wrapper)
-				.unbind(click)
-				.bind(click, function(event) {
+			this._$backward = $(o.backward, this.element)
+				.unbind(click).bind(click, function(event) {
 					self.backward();
 					event.preventDefault();
 				}
 			);
 
-			this._$submit = $(elements.submit, this._$wrapper)
-				.unbind(click)
-				.bind(click, function(event) {
+			this._$submit = $(o.submit, this.element)
+				.unbind(click).bind(click, function(event) {
 					return self.submit(event);
 				}
 			);
 
-			this.select(options.step);
+			this.select(o.initialStep);
 		},
 
 		_search: function(needle, haystack) {
 			var $found, $haystack = $(haystack), type = typeof needle;
 
 			if (needle !== undefined && $haystack.length) {
-				if (type == __number) {
+				if (type == "number") {
 					$found = $haystack.eq(needle);
 				} else if (type == "string") {
 					$found = $haystack.filter(
@@ -202,89 +174,80 @@
 			return $found;
 		},
 
-		_select: function(index, $step) {
+		_select: function($step, stepIndex) {
 			var self = this,
-				forward = index > this._index,
-				$branch = $step.parent(elements.branch),
-				branch = $branch.attr(id),
+				o = this.options,
+				$branch = $step.parents(selectors.branch),
 				// Fixes #3583 - http://bugs.jquery.com/ticket/3583
-				hideOptions = $.extend({}, options.animations.hide.options),
-				showOptions = $.extend({}, options.animations.show.options),
-				maxBranchIndex = this.index(
-					$branch.children(elements.step).filter(":" + last)
+				hideOptions = $.extend({}, o.animations.hide.options),
+				showOptions = $.extend({}, o.animations.show.options),
+				movingForward = stepIndex > this._stepIndex,
+				indexOfLastStepInBranch = this.index(
+					$branch.children(o.steps).filter(":last")
 				);
 
 			if (this._$step) {
-				if (!forward) {
-					this._activated.steps.pop();
+				if (!movingForward) {
+					this._activated.$steps.pop();
 
-					if (branch !== this._branch) {
-						var branchIndex = $.inArray(this._branch, this._activated.branches);
+					if ($branch !== this._$branch) {
+						var currentBranchIndex = $.inArray($branch, this._activated.$branches);
 
-						// Don't remove initial branch
-						if (branchIndex > 0) {
-							this._activated.branches.splice(branchIndex, 1);
+						// Don't remove the default branch
+						if (currentBranchIndex > 0) {
+							this._activated.$branches.splice(currentBranchIndex, 1);
 						}
 					}
 				}
 
 				this._$step.animate(
-					options.animations.hide.properties, hideOptions
-				).removeClass(classes.current);
+					o.animations.hide.properties, hideOptions
+				).removeClass(o.stepAttributes.current);
 			}
 
-			if (forward || !this._$step) {
-				this._activated.steps.push(index);
+			if (movingForward || !this._$step) {
+				this._activated.$steps.push($step);
 
-				if ($.inArray(branch, this._activated.branches) < 0) {
-					this._activated.branches.push(branch);
+				if ($.inArray($branch, this._activated.$branches) < 0) {
+					this._activated.$branches.push($branch);
 				}
 			}
 
 			$step.animate(
-				options.animations.show.properties, showOptions
-			).addClass(classes.current);
+				o.animations.show.properties, showOptions
+			).addClass(o.stepAttributes.current);
 
-			if ($step.hasClass(classes.start) || index === 0) {
-				this._$backward.addClass(classes.disabled).attr(disabled, __true);
-			} else {
-				this._$backward.removeClass(classes.disabled).removeAttr(disabled);
-			}
+			$step.hasClass(o.stepAttributes.start) || stepIndex === 0
+				? this._$backward.attr(disabled, true)
+				: this._$backward.removeAttr(disabled);
 
-			if ($step.hasClass(classes.stop)
-				|| (!$step.attr(options.actionAttr) && index === maxBranchIndex)) {
-				this._$forward.addClass(classes.disabled).attr(disabled, __true);
-			} else {
-				this._$forward.removeClass(classes.disabled).removeAttr(disabled);
-			}
+			$step.hasClass(o.stepAttributes.stop)
+				|| (!$step.attr(o.actionAttribute)
+				&& stepIndex === indexOfLastStepInBranch)
+				? this._$forward.attr(disabled, true)
+				: this._$forward.removeAttr(disabled);
 
-			if ($step.hasClass(classes.submit)) {
-				this._$submit.removeClass(classes.disabled).removeAttr(disabled);
-			} else {
-				this._$submit.addClass(classes.disabled).attr(disabled, __true);
-			}
+			$step.hasClass(o.stepAttributes.submit)
+				? this._$submit.removeAttr(disabled)
+				: this._$submit.attr(disabled, true);
 
-			this._$step = $step;
-			this._index = index;
-			this._$branch = $branch;
-			this._branch = branch;
-
-			var possible = 0;
-			$.each(this._activated.branches, function(i, branch) {
-				possible += self.steps(branch).length;
+			var totalPossibleSteps = 0;
+			$.each(this._activated.$branches, function(i, $branch) {
+				totalPossibleSteps += $branch.children(o.steps).length;
 			});
 
-			this._current = (this._activated.steps.length - 1);
-			this._possible = (possible - 1);
-			this._progress = Math.round((this._current / this._possible) * 100);
+			totalPossibleSteps = Math.max(totalPossibleSteps--, 0);
 
-			this._trigger("select", __null, {
-				step: $step,
-				index: index,
-				branch: $branch,
-				current: this._current,
-				possible: this._possible,
-				progress: this._progress
+			$.extend(this, {
+				_$step: $step,
+				_$branch: $branch,
+				_stepIndex: stepIndex
+			});
+
+			this._trigger("select", null, {
+				currentStep: this._$step,
+				currentBranch: this._$branch,
+				currentStepIndex: this._stepIndex
 			});
 		},
 
@@ -300,39 +263,41 @@
 				$step = this._search(step, $steps);
 
 			// If index is true, we return the step index instead of the step itself
-			if (index === __true) {
+			if (index === true) {
 				return $step && $step.length
 					// If relative is true, the index will be relative to the branch
 					// containing the step, instead of relative to all steps.
-					? (relative === __true ? $steps : this._$steps).index($step)
+					? (relative === true ? $steps : this._$steps).index($step)
 					: -1;
 			}
 
 			return $step;
 		},
 
-		_validates: function($scope) {
-			var $inputs;
-
-			if (this._enabled.validate
-				|| (this._enabled.validate = !!this._$form.data("validator"))) {
-				$inputs = ($scope ? $scope : this._$form).find(options.validateOn);
-
-				if ($inputs.length && !$inputs.valid()) {
-					return __false;
-				}
+		_validates: function() {
+			if (this._pluginsDetected.validate
+				|| (this._pluginsDetected.validate = !!this._$form.data("validator"))
+				&& !this._$step.valid()) {
+				return false;
 			}
 
-			return __true;
+			return true;
 		},
 
-		activated: function(key) {
-			return arguments.length ? this._activated[key] : this._activated;
+		activatedBranches: function() {
+			return this._activated.$branches;
 		},
 
-		backward: function(steps) {
-			this.select(this._activated.steps[this._activated.steps.length - 2
-				+ (typeof steps == __number ? steps : 0)]);
+		activatedSteps: function() {
+			return this._activated.$steps;
+		},
+
+		backward: function(howMany) {
+			var length = this._activated.$steps.length,
+				index = (length - 1) - (typeof howMany == "number" ? howMany : 1),
+				$step = this._activated.$steps[index < 0 ? 0 : index];
+
+			this._select($step, this._$steps.index($step));
 		},
 
 		branch: function(branch) {
@@ -340,45 +305,31 @@
 				: this._$branch;
 		},
 
-		current: function() {
-			return this._current;
-		},
-
 		forward: function() {
-			var action;
+			var next = this._action();
 
-			if ((action = this._action())) {
-				this._select(action.index, action.step);
-			}
+			next && this._select(next.$step, next.stepIndex);
 		},
 
 		index: function(step, branch, relative) {
-			return arguments.length ? this._step(step, branch, __true, relative)
-				: this._currentStep;
-		},
-
-		isValidIndex: function(index) {
-			return typeof index == __number && index >= 0 && index < this._length;
+			return arguments.length ? this._step(step, branch, true, relative)
+				: this._stepIndex;
 		},
 
 		isValidStep: function(step) {
 			return this.isValidIndex(this.index(step));
 		},
 
-		possible: function() {
-			return this._possible;
-		},
-
-		progress: function() {
-			return this._progress;
+		isValidStepIndex: function(index) {
+			return typeof index == "number" && index >= 0 && index < this._totalSteps;
 		},
 
 		select: function(step, branch) {
 			var index = this.index(step, branch);
 
-			if (this.isValidIndex(index)) {
+			if (this.isValidStepIndex(index)) {
 				if (index !== this._index) {
-					this._select(index, this._$steps.eq(index));
+					this._select(this._$steps.eq(index), index);
 				}
 			} else {
 				throw new Error(
@@ -390,37 +341,24 @@
 			}
 		},
 
-		size: function() {
-			return this._length;
-		},
-
 		step: function(step, branch) {
-			return arguments.length ? this._step(step, branch)
-				: this._$step;
+			return arguments.length ? this._step(step, branch) : this._$step;
 		},
 
 		steps: function(branch) {
-			return arguments.length ? this.branch(branch).children(elements.step)
+			return arguments.length ? this.branch(branch).children(selectors.step)
 				: this._$steps;
 		},
 
 		submit: function(event) {
 			return this._validates() &&
-				this._trigger(submit, event || _null, {
+				this._trigger("submit", event || null, {
 					form: this._$form
 				});
 		},
 
-		update: function() {
-			this._$steps = this._$wizard.find(elements.step);
-			this._$branches = this._$wizard.find(elements.branch).andSelf();
-			this._length = this._$steps.length;
-
-			this._trigger("update", __null, {
-				steps: this._$steps,
-				branches: this._$branches,
-				length: this._length
-			});
+		totalSteps: function() {
+			return this._totalSteps;
 		}
 	});
 })(jQuery);
