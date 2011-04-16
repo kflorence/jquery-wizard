@@ -6,6 +6,7 @@
 
 		<link rel="stylesheet" type="text/css" href="styles.css" />
 		<link rel="stylesheet" type="text/css" href="externals/jquery/ui/themes/smoothness/jquery-ui.smoothness.css" />
+		<link rel="stylesheet" type="text/css" href="../src/jquery.ui.wizard.css" />
 
 		<!-- Required scripts -->
 		<script language="javascript" type="text/javascript" src="externals/jquery/jquery-1.4.min.js"></script>
@@ -27,7 +28,7 @@
 				// Example 2: Basic wizard with progress bar
 				$("#progressbar").progressbar();
 
-				$("#example-2 form").wizard({
+				$("#example-2").wizard({
 					select: function(event, data) {
 						$("#progressbar").progressbar("value", data.progress);
 						$("#location").text("(" + data.current + "/" + data.possible + ")");
@@ -35,7 +36,7 @@
 				});
 
 				// Example 3: Basic branching wizard
-				$("#example-3 form").wizard({
+				$("#example-3").wizard({
 					actions: {
 						color: function($step) {
 							return $("[name=color]:checked", $step).val();
@@ -46,11 +47,11 @@
 		</script>
 	</head>
 	<body>
-		<div id="wrapper">
-			<h1>jQuery.ui.wizard Examples</h1>
+		<h1>jQuery.ui.wizard</h1>
 
-			<div class="example" id="example-1">
-				<h2>Basic Wizard</h2>
+		<div id="wrapper">
+			<div id="example-1">
+				<h2 class="header">Basic Wizard</h2>
 
 				<form name="example-1">
 					<div class="step">
@@ -74,8 +75,8 @@
 				</form>
 			</div>
 
-			<div class="example" id="example-2">
-				<h2>Basic Wizard With Progress Bar</h2>
+			<div id="example-2">
+				<h2 class="header">Basic Wizard With Progress Bar</h2>
 
 				<h3>Progress <span id="location"></span></h3>
 				<div id="progressbar"></div>
@@ -102,8 +103,8 @@
 				</form>
 			</div>
 
-			<div class="example" id="example-3">
-				<h2>Branching Wizard</h2>
+			<div id="example-3">
+				<h2 class="header">Branching Wizard</h2>
 
 				<form name="example-3">
 					<div class="step">
@@ -117,13 +118,13 @@
 					</div>
 
 					<div class="branch" id="pink">
-						<div class="step pink" data-action="end">
+						<div class="step" data-action="end">
 							<p>This is the pink branch.</p>
 						</div>
 					</div>
 
 					<div class="branch" id="blue">
-						<div class="step blue" data-action="end">
+						<div class="step" data-action="end">
 							<p>This is the blue branch.</p>
 						</div>
 					</div>
