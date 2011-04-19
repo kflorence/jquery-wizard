@@ -30,8 +30,8 @@
 
 				$("#example-2").wizard({
 					select: function(event, data) {
-						$("#progressbar").progressbar("value", data.progress);
-						$("#location").text("(" + data.current + "/" + data.possible + ")");
+						$("#progressbar").progressbar("value", data.percentComplete);
+						$("#location").text("(" + data.currentStepIndex + "/" + data.stepsPossible + ")");
 					}
 				});
 
