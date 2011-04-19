@@ -31,7 +31,7 @@
 				$("#example-2").wizard({
 					select: function(event, data) {
 						$("#progressbar").progressbar("value", data.percentComplete);
-						$("#location").text("(" + data.currentStepIndex + "/" + data.stepsPossible + ")");
+						$("#location").text("(" + data.stepsComplete + "/" + data.stepsPossible + ")");
 					}
 				});
 
@@ -39,7 +39,14 @@
 				$("#example-3").wizard({
 					actions: {
 						color: function($step) {
-							return $("[name=color]:checked", $step).val();
+							var branch = $("[name=color]:checked", $step).val();
+
+							if (!branch) {
+								alert("Please select a value to continue.");
+								return false;
+							}
+
+							return branch;
 						}
 					}
 				});
