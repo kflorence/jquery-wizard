@@ -20,6 +20,9 @@
 		options: {
 			actions: {},
 			actionAttribute: "data-action",
+			actionDefault: function($step) {
+				return this.index($step.nextAll(selectors.step));
+			},
 			animations: {
 				show: {
 					properties: {
@@ -40,20 +43,21 @@
 			},
 			branches: ".branch",
 			backward: ".backward",
-			defaultAction: function($step) {
-				return this.index($step.nextAll(selectors.step));
-			},
+			enableSubmit: false,
 			forward: ".forward",
 			headers: ".header",
 			initialStep: 0,
-			stepAttributes: {
+			stepClasses: {
 				current: "current",
+				exclude: "exclude",
 				stop: "stop",
-				submit: "submit"
+				submit: "submit",
+				unidirectional: "unidirectional"
 			},
 			steps: ".step",
 			stepsWrapper: "<div>",
-			submit: ":submit"
+			submit: ":submit",
+			unidirectional: false
 		},
 
 		_action: function() {
@@ -65,8 +69,12 @@
 					index,
 					$found,
 					action = this._$step.attr(o.actionAttribute),
-					func = action ? o.actions[action] : o.defaultAction,
+					func = action ? o.actions[action] : o.actionDefault,
 					response = $.isFunction(func) ? func.call(this, this._$step) : action;
+
+			if (response === false) {
+				return;
+			}
 
 			$found = this._search(response, typeof response == "number" ?
 					this._$steps : this._$steps.add(this._$branches));
@@ -88,10 +96,7 @@
 				return;
 			}
 
-			return {
-				$step: $found,
-				stepIndex: index
-			};
+			return { $step: $found, stepIndex: index };
 		},
 
 		_create: function() {
@@ -105,11 +110,7 @@
 			var self = this,
 					o = this.options;
 
-			this._activated = {
-				steps: [],
-				branches: []
-			};
-
+			this._activated = { steps: [], branches: [] };
 			this._stepsComplete = this._stepsPossible = this._stepsRemaining =
 					this._percentComplete = 0;
 
@@ -152,7 +153,7 @@
 
 		_search: function(needle, haystack) {
 			var $found,
-					$haystack = $(haystack),
+					$haystack = $.isjQuery(haystack) ? haystack : $(haystack),
 					type = typeof needle;
 
 			if (needle !== undefined && $haystack.length) {
@@ -163,9 +164,7 @@
 							needle : "#" + needle);
 				} else if (type == "object") {
 					// Extract DOM object from jQuery object
-					if (needle.hasOwnProperty
-							&& needle instanceof jQuery
-							&& needle.length) {
+					if ($.isjQuery(needle) && needle.length) {
 						needle = needle.get(0);
 					}
 
@@ -198,8 +197,7 @@
 					this._activated.steps.pop();
 
 					if (branchID !== this._$branch.attr("id")) {
-						var currentBranchIndex = $.inArray(branchID,
-								this._activated.branches);
+						var currentBranchIndex = $.inArray(branchID, this._activated.branches);
 
 						// Don't remove the default branch
 						if (currentBranchIndex > 0) {
@@ -209,7 +207,7 @@
 				}
 
 				this._$step.animate(o.animations.hide.properties, hideOptions)
-						.removeClass(o.stepAttributes.current);
+						.removeClass(o.stepClasses.current);
 			}
 
 			if (movingForward) {
@@ -221,18 +219,20 @@
 			}
 
 			$step.animate(o.animations.show.properties, showOptions)
-					.addClass(o.stepAttributes.current);
+					.addClass(o.stepClasses.current);
 
-			$step.hasClass(o.stepAttributes.start) || stepIndex === 0 ?
+			stepIndex === 0 || o.unidirectional
+					|| $step.hasClass(o.stepClasses.unidirectional) ?
 					this._$backward.attr(disabled, true) :
 					this._$backward.removeAttr(disabled);
 
-			$step.hasClass(o.stepAttributes.stop) || (!$step.attr(o.actionAttribute)
-					&& stepIndex === indexOfLastStepInBranch) ?
+			(stepIndex === indexOfLastStepInBranch && !$step.attr(o.actionAttribute))
+					|| $step.hasClass(o.stepClasses.stop) ?
 					this._$forward.attr(disabled, true) :
 					this._$forward.removeAttr(disabled);
 
-			$step.hasClass(o.stepAttributes.submit) ?
+			this._$form.length && (o.enableSubmit
+					|| $step.hasClass(o.stepClasses.submit)) ?
 					this._$submit.removeAttr(disabled) :
 					this._$submit.attr(disabled, true);
 
@@ -279,15 +279,17 @@
 
 		_updateProgress: function() {
 			var self = this,
-					o = this.options,
-					stepsPossible = 0;
+					o = this.options;
 
-			$.each(this._activated.branches, function(i, branchID) {
-				stepsPossible += self.branch(branchID).children(o.steps).length;
-			});
+			this._stepsComplete = Math.max(this.stepsActivated().filter(function() {
+						return !$(this).hasClass(o.stepClasses.exclude);
+					}).length - 1, 0);
 
-			this._stepsPossible = Math.max(stepsPossible--, 0);
-			this._stepsComplete = this._activated.steps.length - 1;
+			this._stepsPossible = Math.max(this.branchesActivated().children(o.steps)
+					.filter(function() {
+						return !$(this).hasClass(o.stepClasses.exclude);
+					}).length - 1, 0);
+
 			this._stepsRemaining = this._stepsPossible - this._stepsComplete;
 			this._percentComplete = 100 * this._stepsComplete / this._stepsPossible;
 		},
@@ -410,6 +412,13 @@
 					&& this._trigger("submit", event || null, {
 						form: this._$form
 					});
+		}
+	});
+
+  $.extend({
+		isjQuery: $.isjQuery || function(obj) {
+			// http://ajaxian.com/archives/working-aroung-the-instanceof-memory-leak
+			return obj && obj.hasOwnProperty && obj instanceof jQuery;
 		}
 	});
 })(jQuery);
