@@ -66,11 +66,11 @@
 			}
 
 			var o = this.options,
-					index,
-					$found,
-					action = this._$step.attr(o.actionAttribute),
-					func = action ? o.actions[action] : o.actionDefault,
-					response = $.isFunction(func) ? func.call(this, this._$step) : action;
+				index,
+				$found,
+				action = this._$step.attr(o.actionAttribute),
+				func = action ? o.actions[action] : o.actionDefault,
+				response = $.isFunction(func) ? func.call(this, this._$step) : action;
 
 			if (response === false) {
 				return;
@@ -108,7 +108,7 @@
 
 		_init: function() {
 			var self = this,
-					o = this.options;
+				o = this.options;
 
 			this._activated = { steps: [], branches: [] };
 			this._stepsComplete = this._stepsPossible = this._stepsRemaining =
@@ -153,8 +153,8 @@
 
 		_search: function(needle, haystack) {
 			var $found,
-					$haystack = $.isjQuery(haystack) ? haystack : $(haystack),
-					type = typeof needle;
+				$haystack = $.isjQuery(haystack) ? haystack : $(haystack),
+				type = typeof needle;
 
 			if (needle !== undefined && $haystack.length) {
 				if (type == "number") {
@@ -182,15 +182,15 @@
 
 		_select: function($step, stepIndex) {
 			var self = this,
-					o = this.options,
-					$branch = $step.parents(selectors.branch),
-					branchID = $branch.attr("id"),
-					// Fixes #3583 - http://bugs.jquery.com/ticket/3583
-					hideOptions = $.extend({}, o.animations.hide.options),
-					showOptions = $.extend({}, o.animations.show.options),
-					movingForward = stepIndex > this._stepIndex,
-					indexOfLastStepInBranch = this.index($branch.children(o.steps)
-							.filter(":last"));
+				o = this.options,
+				$branch = $step.parents(selectors.branch),
+				branchID = $branch.attr("id"),
+				// Fixes #3583 - http://bugs.jquery.com/ticket/3583
+				hideOptions = $.extend({}, o.animations.hide.options),
+				showOptions = $.extend({}, o.animations.show.options),
+				movingForward = stepIndex > this._stepIndex,
+				indexOfLastStepInBranch = this.index($branch.children(o.steps)
+						.filter(":last"));
 
 			if (this._stepIndex > -1) {
 				if (!movingForward) {
@@ -279,7 +279,7 @@
 
 		_updateProgress: function() {
 			var self = this,
-					o = this.options;
+				o = this.options;
 
 			this._stepsComplete = Math.max(this.stepsActivated().filter(function() {
 						return !$(this).hasClass(o.stepClasses.exclude);
@@ -306,8 +306,8 @@
 
 		backward: function(howMany) {
 			var length = this._activated.steps.length,
-					index = (length - 1) - (typeof howMany == "number" ? howMany : 1),
-					$step = this.step(this._activated.steps[index < 0 ? 0 : index]);
+				index = (length - 1) - (typeof howMany == "number" ? howMany : 1),
+				$step = this.step(this._activated.steps[index < 0 ? 0 : index]);
 
 			this._select($step, this._$steps.index($step));
 		},
@@ -324,7 +324,7 @@
 
 		branchesActivated: function() {
 			var self = this,
-					$branches = $([]);
+				$branches = $([]);
 
 			$.each(this._activated.branches, function(i, branchID) {
 				$branches = $branches.add(self.branch(branchID));
@@ -386,7 +386,7 @@
 
 		stepsActivated: function() {
 			var self = this,
-					$steps = $([]);
+				$steps = $([]);
 
 			$.each(this._activated.steps, function(i, stepIndex) {
 				$steps = $steps.add(self.step(stepIndex));
@@ -415,7 +415,7 @@
 		}
 	});
 
-  $.extend({
+	$.extend({
 		isjQuery: $.isjQuery || function(obj) {
 			// http://ajaxian.com/archives/working-aroung-the-instanceof-memory-leak
 			return obj && obj.hasOwnProperty && obj instanceof jQuery;
