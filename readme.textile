@@ -1,0 +1,3 @@
+h1. jQuery.ui.wizard
+
+A jQuery UI wizard that supports branching.
