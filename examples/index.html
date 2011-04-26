@@ -5,16 +5,16 @@
 		<title>jQuery.ui.wizard</title>
 
 		<link rel="stylesheet" type="text/css" href="styles.css" />
-		<link rel="stylesheet" type="text/css" href="externals/jquery/ui/themes/smoothness/jquery-ui.smoothness.css" />
+		<link rel="stylesheet" type="text/css" href="../externals/jquery/ui/themes/smoothness/jquery-ui.smoothness.css" />
 		<link rel="stylesheet" type="text/css" href="../src/jquery.ui.wizard.css" />
 
 		<!-- Required scripts -->
-		<script language="javascript" type="text/javascript" src="externals/jquery/jquery-1.4.min.js"></script>
-		<script language="javascript" type="text/javascript" src="externals/jquery/ui/jquery-ui-1.8.11.min.js"></script>
+		<script language="javascript" type="text/javascript" src="../externals/jquery/jquery-1.4.min.js"></script>
+		<script language="javascript" type="text/javascript" src="../externals/jquery/ui/jquery-ui-1.8.11.min.js"></script>
 
 		<!-- Optional scripts -->
-		<script language="javascript" type="text/javascript" src="externals/jquery/form/jquery.form.js"></script>
-		<script language="javascript" type="text/javascript" src="externals/jquery/validate/jquery.validate.js"></script>
+		<script language="javascript" type="text/javascript" src="../externals/jquery/form/jquery.form.js"></script>
+		<script language="javascript" type="text/javascript" src="../externals/jquery/validate/jquery.validate.js"></script>
 
 		<!-- The plugin -->
 		<script language="javascript" type="text/javascript" src="../src/jquery.ui.wizard.js"></script>
@@ -50,6 +50,9 @@
 						}
 					}
 				});
+
+				// Example 4: Nested Branches
+				$("#example-4").wizard();
 			});
 		</script>
 	</head>
@@ -58,7 +61,7 @@
 
 		<div id="wrapper">
 			<div id="example-1">
-				<h2 class="header">Basic Wizard</h2>
+				<h2>Basic Wizard</h2>
 
 				<form name="example-1">
 					<div class="step">
@@ -83,7 +86,7 @@
 			</div>
 
 			<div id="example-2">
-				<h2 class="header">Basic Wizard With Progress Bar</h2>
+				<h2>Basic Wizard With Progress Bar</h2>
 
 				<h3>Progress <span id="location"></span></h3>
 				<div id="progressbar"></div>
@@ -111,7 +114,7 @@
 			</div>
 
 			<div id="example-3">
-				<h2 class="header">Branching Wizard</h2>
+				<h2>Branching Wizard</h2>
 
 				<form name="example-3">
 					<div class="step">
@@ -138,6 +141,35 @@
 
 					<div class="step" id="end">
 						<p>Back to the default branch and this wizard is over.</p>
+					</div>
+
+					<div class="navigation">
+						<ul class="clearfix">
+							<li><button type="button" name="backward" class="backward">Backward</button></li>
+							<li><button type="button" name="forward" class="forward">Forward</button></li>
+						</ul>
+					</div>
+				</form>
+			</div>
+
+			<div id="example-4">
+				<h2>Nested Branches</h2>
+
+				<form name="example-3">
+					<div class="step" data-action="e4-branch-1">
+						<p>Start</p>
+					</div>
+
+					<div class="branch" id="e4-branch-1">
+						<div class="step" data-action="e4-branch-2">Branch Step</div>
+
+						<div class="branch" id="e4-branch-2">
+							<div class="step" data-action="e4-finish">Nested Branch Step</div>
+						</div>
+					</div>
+
+					<div class="step" id="e4-finish">
+						<p>Finish</p>
 					</div>
 
 					<div class="navigation">

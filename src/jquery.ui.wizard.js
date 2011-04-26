@@ -45,7 +45,7 @@
 			backward: ".backward",
 			enableSubmit: false,
 			forward: ".forward",
-			headers: ".header",
+			headers: "> :header",
 			initialStep: 0,
 			stepClasses: {
 				current: "current",
