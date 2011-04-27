@@ -1,71 +1,77 @@
 <!doctype html>
 <html>
-  <head>
-    <title>jQuery.ui.wizard Unit Tests</title>
-    <link rel="stylesheet" type="text/css" href="qunit/qunit.css" />
+	<head>
+		<title>jQuery.ui.wizard Unit Tests</title>
+		<link rel="stylesheet" type="text/css" href="qunit/qunit.css" />
 
-    <script type="text/javascript" src="../externals/jquery/jquery-1.4.min.js"></script>
-    <script type="text/javascript" src="../externals/jquery/ui/jquery-ui-1.8.11.min.js"></script>
+		<script type="text/javascript" src="../externals/jquery/jquery-1.4.min.js"></script>
+		<script type="text/javascript" src="../externals/jquery/ui/jquery-ui-1.8.11.min.js"></script>
 
-    <script type="text/javascript" src="../src/jquery.ui.wizard.js"></script>
+		<script type="text/javascript" src="../src/jquery.ui.wizard.js"></script>
 
-    <script type="text/javascript" src="qunit/qunit.js"></script>
-    <script type="text/javascript" src="unit/core.js"></script>
+		<script type="text/javascript" src="qunit/qunit.js"></script>
+		<script type="text/javascript" src="unit/wizard_core.js"></script>
+		<script type="text/javascript" src="unit/wizard_defaults.js"></script>
+		<script type="text/javascript" src="unit/wizard_events.js"></script>
+		<script type="text/javascript" src="unit/wizard_methods.js"></script>
+		<script type="text/javascript" src="unit/wizard_options.js"></script>
 
-    <script type="text/javascript">
-      jQuery(function() {
-        // Log to console
-        QUnit.log = function(test) {
-          if (typeof console !== "undefined" && console.log) {
-          console.log(test.message + ":", test.result);
-          }
-        }
-      });
-    </script>
-  </head>
-  <body>
-    <h1 id="qunit-header">jQuery.ui.wizard Unit Tests</h1>
-    <h2 id="qunit-banner"></h2>
-    <h2 id="qunit-userAgent"></h2>
-    <ol id="qunit-tests"></ol>
+		<script type="text/javascript">
+			jQuery(function( $ ) {
+					// Log to console
+					QUnit.log = function( test ) {
+							if ( typeof console !== "undefined" && console.log ) {
+									console.log( test.message + ":", test.result );
+							}
+					}
+			});
+		</script>
+	</head>
+	<body>
+		<h1 id="qunit-header">jQuery.ui.wizard Unit Tests</h1>
+		<h2 id="qunit-banner"></h2>
+		<h2 id="qunit-userAgent"></h2>
+		<ol id="qunit-tests"></ol>
 
-    <!-- Test markup -->
-    <div id="qunit-fixture">
-      <div id="wizard">
-        <h2>Heading</h2>
+		<!-- Test markup -->
+		<div id="qunit-fixture">
+			<div id="invalid"></div>
 
-        <form id="form">
+			<div id="wizard">
+				<h2>Heading</h2>
 
-          <!-- 8 steps, not including finish step -->
-          <div class="step" data-action="branch-1"></div>
+				<form id="form">
 
-          <div class="branch" id="branch-1">
-            <div class="step"></div>
-            <div class="step" data-action="nested-1"></div>
-            <div class="step"></div>
+					<!-- 8 steps, not including finish step -->
+					<div class="step" data-action="branch-1"></div>
 
-            <div class="branch" id="nested-1">
-              <div class="step"></div>
-              <div class="step" data-action="branch-2"></div>
-            </div>
+					<div class="branch" id="branch-1">
+						<div class="step"></div>
+						<div class="step" data-action="nested-1"></div>
+						<div class="step"></div>
 
-            <!-- Unused -->
-            <div class="branch" id="nested-2"></div>
-          </div>
+						<div class="branch" id="nested-1">
+							<div class="step"></div>
+							<div class="step" data-action="branch-2"></div>
+						</div>
 
-          <div class="branch" id="branch-2">
-            <div class="step"></div>
-            <div class="step" data-action="finish"></div>
-          </div>
+						<!-- Unused -->
+						<div class="branch" id="nested-2"></div>
+					</div>
 
-          <div class="step" id="finish">finish</div>
+					<div class="branch" id="branch-2">
+						<div class="step"></div>
+						<div class="step" data-action="finish"></div>
+					</div>
 
-          <!-- Navigation -->
-          <button type="button" name="backward" class="backward"></button>
-          <button type="button" name="forward" class="forward"></button>
-          <button type="button" name="submit" class="submit"></button>
-        </form>
-      </div>
-    </div>
-  </body>
+					<div class="step" id="finish">finish</div>
+
+					<!-- Navigation -->
+					<button type="button" name="backward" class="backward"></button>
+					<button type="button" name="forward" class="forward"></button>
+					<button type="button" name="submit" class="submit"></button>
+				</form>
+			</div>
+		</div>
+	</body>
 </html>
