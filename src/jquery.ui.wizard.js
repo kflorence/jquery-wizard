@@ -17,8 +17,8 @@ var count = 0,
 	namespace = "ui-wizard",
 	selectors = {};
 
-$.each( [ "branch", "form", "header", "step" ], function() {
-	selectors [this ] = "." + ( classes[ this ] = namespace + "-" + this );
+$.each( "branch form header step".split( " " ), function() {
+	selectors [ this ] = "." + ( classes[ this ] = namespace + "-" + this );
 });
 
 $.widget( namespace.replace( "-", "." ), {
@@ -47,11 +47,17 @@ $.widget( namespace.replace( "-", "." ), {
 			}
 		},
 		branches: ".branch",
-		backward: ".backward",
+		backward: null,
 		enableSubmit: false,
-		forward: ".forward",
-		headers: ":header:first",
+		forward: null,
+		headers: "> :header:first",
 		initialStep: 0,
+		navigation: {
+			backward: ".backward",
+			forward: ".forward",
+			submit: ":submit"
+		},
+		select: null,
 		stepClasses: {
 			current: "current",
 			exclude: "exclude",
@@ -61,15 +67,11 @@ $.widget( namespace.replace( "-", "." ), {
 		},
 		steps: ".step",
 		stepsWrapper: "<div>",
-		submit: ":submit",
+		submit: null,
 		unidirectional: false
 	},
 
 	_action: function() {
-		if ( !this._validates() ) {
-			return;
-		}
-
 		var $found, index,
 			o = this.options,
 			action = this._$step.attr( o.actionAttribute ),
@@ -128,27 +130,24 @@ $.widget( namespace.replace( "-", "." ), {
 
 		this._stepCount = this._$steps.length;
 
-		this._$defaultBranch = this._$steps.eq( 0 ).parent()
-			.wrapInner( $( o.stepsWrapper )
-				.addClass( o.branches.substr( 1 ) )
-				.attr( "id", namespace + "-" + count++ ) );
+		this._$defaultBranch = this._$steps.eq( 0 ).parent().wrapInner( $( o.stepsWrapper )
+			.addClass( o.branches.substr( 1 ) )
+			.attr( "id", namespace + "-" + count++ ) );
 
 		this._$branches = this.element.find( o.branches ).addClass( classes.branch );
 
-		this._$forward = $( o.forward, this.element ).unbind( click )
-			.bind( click, function( e ) {
-				self.forward();
-				e.preventDefault();
+		this._$forward = $( o.navigation.forward, this.element )
+			.unbind( click ).bind( click, function( e ) {
+				self.forward( e );
 			});
 
-		this._$backward = $( o.backward, this.element ).unbind( click )
-			.bind( click, function( e ) {
-				self.backward();
-				e.preventDefault();
+		this._$backward = $( o.navigation.backward, this.element )
+			.unbind( click ).bind( click, function( e ) {
+				self.backward( e );
 			});
 
-		this._$submit = $( o.submit, this.element ).unbind( click )
-			.bind( click, function( e ) {
+		this._$submit = $( o.navigation.submit, this.element )
+			.unbind( click ).bind( click, function( e ) {
 				return self.submit( e );
 			});
 
@@ -255,16 +254,7 @@ $.widget( namespace.replace( "-", "." ), {
 		});
 
 		this._updateProgress();
-
-		this._trigger( "select", null, {
-			currentStep: this._$step,
-			currentBranch: this._$branch,
-			currentStepIndex: this._stepIndex,
-			stepsComplete: this._stepsComplete,
-			stepsPossible: this._stepsPossible,
-			stepsRemaining: this._stepsRemaining,
-			percentComplete: this._percentComplete
-		});
+		this._trigger( "select" );
 	},
 
 	_step: function( step, branch, index, relative ) {
@@ -318,12 +308,21 @@ $.widget( namespace.replace( "-", "." ), {
 		return true;
 	},
 
-	backward: function( howMany ) {
+	backward: function( e, howMany ) {
+		// Allow for the omission of e
+		if (typeof e === "number") {
+			howMany = e;
+			e = undefined;
+		}
+
 		var length = this._activated.steps.length,
 			index = ( length - 1 ) - ( typeof howMany === "number" ? howMany : 1 ),
-			$step = this.step( this._activated.steps[ index < 0 ? 0 : index ] );
+			stepIndex = this._activated.steps[ index < 0 ? 0 : index ];
 
-		this._select( $step, this._$steps.index( $step ) );
+		if ( stepIndex !== undefined  && stepIndex < this._stepIndex ) {
+			this._select( this.step( stepIndex ), stepIndex );
+			this._trigger( "backward", e );
+		}
 	},
 
 	branch: function( branch ) {
@@ -346,11 +345,12 @@ $.widget( namespace.replace( "-", "." ), {
 		return $branches;
 	},
 
-	forward: function() {
+	forward: function( e ) {
 		var next = this._action();
 
-		if ( next !== undefined ) {
+		if ( next !== undefined && next.stepIndex > this._stepIndex ) {
 			this._select( next.$step, next.stepIndex );
+			this._trigger( "forward", e  );
 		}
 	},
 
@@ -423,9 +423,7 @@ $.widget( namespace.replace( "-", "." ), {
 	},
 
 	submit: function( e ) {
-		return this._validates() && this._trigger( "submit", event || null, {
-			form: this._$form
-		});
+		return this._validates() && this._trigger( "submit", e || null );
 	}
 });
 
