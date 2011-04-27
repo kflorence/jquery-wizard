@@ -29,9 +29,11 @@
 				$("#progressbar").progressbar();
 
 				$("#example-2").wizard({
-					select: function(event, data) {
-						$("#progressbar").progressbar("value", data.percentComplete);
-						$("#location").text("(" + data.stepsComplete + "/" + data.stepsPossible + ")");
+					select: function() {
+						var $this = $(this);
+						$("#progressbar").progressbar("value", $this.wizard("percentComplete"));
+						$("#location").text("(" + $this.wizard("stepsComplete")
+							+ "/" + $this.wizard("stepsPossible") + ")");
 					}
 				});
 
