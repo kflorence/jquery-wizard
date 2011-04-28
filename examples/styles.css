@@ -24,9 +24,11 @@ h3 span {
 }
 
 #navigation {
+	font-size: 1.2em;
 	padding: 10px;
+	padding-left: 30px;
 	margin: 10px;
-	list-style: none;
+	list-style: circle;
 }
 
 #navigation li {
