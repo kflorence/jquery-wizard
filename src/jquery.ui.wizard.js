@@ -15,7 +15,8 @@ var count = 0,
 	click = "click",
 	disabled = "disabled",
 	namespace = "ui-wizard",
-	selectors = {};
+	selectors = {},
+	submit = "submit";
 
 $.each( "branch form header step".split( " " ), function() {
 	selectors [ this ] = "." + ( classes[ this ] = namespace + "-" + this );
@@ -25,39 +26,33 @@ $.widget( namespace.replace( "-", "." ), {
 	options: {
 		actions: {},
 		actionAttribute: "data-action",
-		actionDefault: function( $step ) {
-			return this.index( $step.nextAll( selectors.step ) );
-		},
 		animations: {
 			show: {
-				properties: {
-					opacity: "show"
-				},
 				options: {
 					duration: 0
+				},
+				properties: {
+					opacity: "show"
 				}
 			},
 			hide: {
-				properties: {
-					opacity: "hide"
-				},
 				options: {
 					duration: 0
+				},
+				properties: {
+					opacity: "hide"
 				}
 			}
 		},
+		backward: ".backward",
 		branches: ".branch",
-		backward: null,
-		enableSubmit: false,
-		forward: null,
-		headers: "> :header:first",
-		initialStep: 0,
-		navigation: {
-			backward: ".backward",
-			forward: ".forward",
-			submit: ":submit"
+		defaultAction: function( $step ) {
+			return this.index( $step.nextAll( selectors.step ) );
 		},
-		select: null,
+		enableSubmit: false,
+		forward: ".forward",
+		header: "> :header:first",
+		initialStep: 0,
 		stepClasses: {
 			current: "current",
 			exclude: "exclude",
@@ -67,15 +62,24 @@ $.widget( namespace.replace( "-", "." ), {
 		},
 		steps: ".step",
 		stepsWrapper: "<div>",
-		submit: null,
-		unidirectional: false
+		submit: ":submit",
+		unidirectional: false,
+
+		/* events */
+		afterBackward: null,
+		afterForward: null,
+		afterSelect: null,
+		beforeBackward: null,
+		beforeForward: null,
+		beforeSelect: null,
+		beforeSubmit: null
 	},
 
 	_action: function() {
 		var $found, index,
 			o = this.options,
 			action = this._$step.attr( o.actionAttribute ),
-			func = action ? o.actions[ action ] : o.actionDefault,
+			func = action ? o.actions[ action ] : o.defaultAction,
 			response = $.isFunction( func ) ? func.call( this, this._$step ) : action;
 
 		if ( response === false ) {
@@ -107,22 +111,20 @@ $.widget( namespace.replace( "-", "." ), {
 
 	_create: function() {
 		this._stepIndex = -1;
-		this._pluginsDetected = {};
 		this.element.addClass( namespace +
 			" ui-widget ui-widget-content ui-corner-all" );
 	},
 
 	_init: function() {
-		var o = this.options,
+		var $defBranch,
+			o = this.options,
 			self = this;
 
 		this._activated = { steps: [], branches: [] };
 		this._stepsComplete = this._stepsPossible = this._stepsRemaining =
 			this._percentComplete = 0;
 
-		this._$form = this.element.find( "form" ).addClass( classes.form );
-
-		this._$headers = this.element.find( o.headers ).addClass( classes.header +
+		this._$header = this.element.find( o.header ).addClass( classes.header +
 			" ui-widget-header ui-helper-reset ui-corner-all" );
 
 		this._$steps = this.element.find( o.steps ).hide().addClass( classes.step +
@@ -130,25 +132,44 @@ $.widget( namespace.replace( "-", "." ), {
 
 		this._stepCount = this._$steps.length;
 
-		this._$defaultBranch = this._$steps.eq( 0 ).parent().wrapInner( $( o.stepsWrapper )
-			.addClass( o.branches.substr( 1 ) )
-			.attr( "id", namespace + "-" + count++ ) );
+		this._$defaultBranch = $defBranch = $( o.stepsWrapper )
+			.addClass( o.branches.substr( 1 ) );
+
+		// Every branch needs a unique ID
+		if ( !$defBranch.attr( "id" ) ) {
+			$defBranch.attr( "id", namespace + "-" + count++ );
+		}
+
+		// Add default branch to the DOM if it is detached
+		if ( !$.contains( $defBranch[ 0 ].ownerDocument.documentElement, $defBranch[ 0 ] ) ) {
+			this._$steps.eq( 0 ).parent().wrapInner( $defBranch );
+		}
 
 		this._$branches = this.element.find( o.branches ).addClass( classes.branch );
 
-		this._$forward = $( o.navigation.forward, this.element )
-			.unbind( click ).bind( click, function( e ) {
-				self.forward( e );
+		this._$forward = $( o.forward, this.element )
+			.unbind( click )
+			.bind( click, function( event ) {
+				self.forward( event );
 			});
 
-		this._$backward = $( o.navigation.backward, this.element )
-			.unbind( click ).bind( click, function( e ) {
-				self.backward( e );
+		this._$backward = $( o.backward, this.element )
+			.unbind( click )
+			.bind( click, function( event ) {
+				self.backward( event );
 			});
 
-		this._$submit = $( o.navigation.submit, this.element )
-			.unbind( click ).bind( click, function( e ) {
-				return self.submit( e );
+		this._$submit = $( o.submit, this.element )
+			.unbind( click )
+			.bind( click, function( event ) {
+				self._$form.trigger( "submit" );
+			});
+
+		this._$form = ( this.element[0].elements ? this.element : $( "form", this.element ) )
+			.addClass( classes.form )
+			.unbind( submit )
+			.bind( submit, function( event ) {
+				return self._trigger( "beforeSubmit" );
 			});
 
 		this.select( o.initialStep );
@@ -156,19 +177,17 @@ $.widget( namespace.replace( "-", "." ), {
 
 	_search: function( needle, haystack ) {
 		var $found,
-			$haystack = $.isjQuery( haystack ) ? haystack : $( haystack ),
+			$haystack = haystack instanceof jQuery ? haystack : $( haystack ),
 			type = typeof needle;
 
 		if ( needle !== undefined && $haystack.length ) {
 			if ( type === "number" ) {
 				$found = $haystack.eq( needle );
 			} else if ( type === "string" ) {
-				$found = $haystack.filter( needle.charAt( 0 ) == "#" ?
-					needle : "#" + needle );
+				$found = $haystack.filter( needle[ 0 ] == "#" ? needle : "#" + needle );
 			} else if ( type === "object" ) {
-				// Extract DOM object from jQuery object
-				if ( $.isjQuery( needle ) && needle.length ) {
-					needle = needle.get( 0 );
+				if ( needle instanceof jQuery && needle.length ) {
+					needle = needle[ 0 ];
 				}
 
 				// Make sure we have a DOM object
@@ -184,6 +203,10 @@ $.widget( namespace.replace( "-", "." ), {
 	},
 
 	_select: function( $step, stepIndex ) {
+		if ( !this._trigger( "beforeSelect" ) ) {
+			return;
+		}
+
 		var o = this.options,
 			$branch = $step.parents( selectors.branch ),
 			branchID = $branch.attr( "id" ),
@@ -254,7 +277,8 @@ $.widget( namespace.replace( "-", "." ), {
 		});
 
 		this._updateProgress();
-		this._trigger( "select" );
+
+		this._trigger( "afterSelect" );
 	},
 
 	_step: function( step, branch, index, relative ) {
@@ -298,30 +322,21 @@ $.widget( namespace.replace( "-", "." ), {
 		this._percentComplete = 100 * this._stepsComplete / this._stepsPossible;
 	},
 
-	_validates: function() {
-		if ( this._pluginsDetected.validate
-			|| ( this._pluginsDetected.validate = !!this._$form.data( "validator" ) )
-			&& !this._$step.valid() ) {
-			return false;
-		}
-
-		return true;
-	},
-
-	backward: function( e, howMany ) {
-		// Allow for the omission of e
-		if (typeof e === "number") {
-			howMany = e;
-			e = undefined;
+	backward: function( event, howMany ) {
+		// Allow for the omission of event
+		if (typeof event === "number") {
+			howMany = event;
+			event = undefined;
 		}
 
 		var length = this._activated.steps.length,
 			index = ( length - 1 ) - ( typeof howMany === "number" ? howMany : 1 ),
 			stepIndex = this._activated.steps[ index < 0 ? 0 : index ];
 
-		if ( stepIndex !== undefined  && stepIndex < this._stepIndex ) {
+		if ( stepIndex !== undefined  && stepIndex < this._stepIndex
+			&& this._trigger( "beforeBackward", event ) ) {
 			this._select( this.step( stepIndex ), stepIndex );
-			this._trigger( "backward", e );
+			this._trigger( "afterBackward", event );
 		}
 	},
 
@@ -345,12 +360,17 @@ $.widget( namespace.replace( "-", "." ), {
 		return $branches;
 	},
 
-	forward: function( e ) {
+	form: function() {
+		return this._$form;
+	},
+
+	forward: function( event ) {
 		var next = this._action();
 
-		if ( next !== undefined && next.stepIndex > this._stepIndex ) {
+		if ( next !== undefined && next.stepIndex > this._stepIndex 
+			&& this._trigger( "beforeForward", event ) ) {
 			this._select( next.$step, next.stepIndex );
-			this._trigger( "forward", e  );
+			this._trigger( "afterForward", event  );
 		}
 	},
 
@@ -363,8 +383,9 @@ $.widget( namespace.replace( "-", "." ), {
 		return this.isValidIndex( this.index( step ) );
 	},
 
-	isValidStepIndex: function( index ) {
-		return typeof index === "number" && index >= 0 && index < this._stepCount;
+	isValidStepIndex: function( stepIndex ) {
+		return typeof stepIndex === "number" && stepIndex >= 0
+			&& stepIndex < this._stepCount;
 	},
 
 	percentComplete: function() {
@@ -420,17 +441,6 @@ $.widget( namespace.replace( "-", "." ), {
 
 	stepsRemaining: function() {
 		return this._stepsRemaining;
-	},
-
-	submit: function( e ) {
-		return this._validates() && this._trigger( "submit", e || null );
-	}
-});
-
-$.extend({
-	isjQuery: $.isjQuery || function( obj ) {
-		// http://ajaxian.com/archives/working-aroung-the-instanceof-memory-leak
-		return obj && obj.hasOwnProperty && obj instanceof jQuery;
 	}
 });
 
