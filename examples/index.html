@@ -9,7 +9,7 @@
 
 		<!-- Required scripts -->
 		<script language="javascript" type="text/javascript" src="../external/jquery/jquery-1.4.min.js"></script>
-		<script language="javascript" type="text/javascript" src="../external/jquery/ui/jquery-ui-1.8.11.min.js"></script>
+		<script language="javascript" type="text/javascript" src="../external/jquery/ui/jquery-ui-1.8.12.min.js"></script>
 
 		<!-- Optional scripts -->
 		<script language="javascript" type="text/javascript" src="../external/jquery/form/jquery.form.js"></script>
@@ -22,13 +22,15 @@
 		<script language="javascript" type="text/javascript">
 			jQuery(function($) {
 				// Example 1: Basic wizard
-				$("#example-1").wizard();
+					$("#example-1").wizard({
+						stepsWrapper: "#wrapped"
+					});
 
 				// Example 2: Basic wizard with progress bar
 				$("#progressbar").progressbar();
 
 				$("#example-2").wizard({
-					select: function() {
+					afterSelect: function() {
 						var $this = $(this);
 						$("#progressbar").progressbar("value", $this.wizard("percentComplete"));
 						$("#location").text("(" + $this.wizard("stepsComplete")
@@ -64,7 +66,7 @@
 			<div id="example-1">
 				<h2>Basic Wizard</h2>
 
-				<form name="example-1">
+				<form name="example-1" id="wrapped">
 					<div class="step">
 						<p>This is a basic wizard. It contains three steps. You are on step one.</p>
 					</div>

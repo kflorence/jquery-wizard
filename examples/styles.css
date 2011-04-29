@@ -15,6 +15,16 @@ h1 {
 	padding: 10px;
 }
 
+h1 a {
+	color: #fff;
+	text-decoration: none;
+}
+
+h1 a:hover {
+	color: #eee;
+	text-decoration: underline;
+}
+
 h3 span {
 	font-weight: normal;
 }
