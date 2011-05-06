@@ -3,7 +3,7 @@
  *
  * @author Kyle Florence <kyle[dot]florence[at]gmail[dot]com>
  * @website https://github.com/kflorence/jquery-ui-wizard/
- * @version 0.1.0
+ * @version 0.2.0
  *
  * Dual licensed under the MIT and BSD licenses.
  */
@@ -76,40 +76,6 @@ $.widget( namespace.replace( "-", "." ), {
 		beforeForward: null,
 		beforeSelect: null,
 		beforeSubmit: null
-	},
-
-	_action: function() {
-		var $found, index,
-			o = this.options,
-			action = this._$step.attr( o.actionAttribute ),
-			func = action ? o.actions[ action ] : o.defaultAction,
-			response = $.isFunction( func ) ? func.call( this, this._$step ) : action;
-
-		if ( response === false ) {
-			return;
-		}
-
-		$found = this._search( response, typeof response === "number" ?
-			this._$steps : this._$steps.add( this._$branches ) );
-
-		if ( $found !== undefined && $found.length ) {
-			if ( $found.hasClass( classes.branch ) ) {
-				$found = this.steps( $found ).filter( ":first" );
-			}
-
-			index = this.index( $found );
-		}
-
-		if ( !this.isValidStepIndex( index ) ) {
-			throw new Error( 'Unexpected state encountered: ' +
-				'action="' + action + '", ' +
-				'response="' + response + '", ' +
-				'index="' + index + '"' );
-
-			return;
-		}
-
-		return index;
 	},
 
 	_create: function() {
@@ -329,6 +295,44 @@ $.widget( namespace.replace( "-", "." ), {
 		this._percentComplete = 100 * this._stepsComplete / this._stepsPossible;
 	},
 
+	action: function( response ) {
+		if ( arguments.length ) {
+			var index,
+				$found = this._search( response, typeof response === "number" ?
+				this._$steps : this._$steps.add( this._$branches ) );
+
+			if ( $found !== undefined && $found.length ) {
+				if ( $found.hasClass( classes.branch ) ) {
+					$found = this.steps( $found ).filter( ":first" );
+				}
+
+				index = this.index( $found );
+			}
+
+			if ( !this.isValidStepIndex( index ) ) {
+				throw new Error( 'Unexpected state encountered: ' +
+					'action="' + action + '", ' +
+					'response="' + response + '", ' +
+					'index="' + index + '"' );
+
+				return;
+			}
+
+			return index;
+
+		// Looking for an action to tell us what to do next
+		} else {
+			var o = this.options,
+				action = this._$step.attr( o.actionAttribute ),
+				func = action ? o.actions[ action ] : o.defaultAction,
+				response = $.isFunction( func ) ? func.call( this, this._$step ) : action;
+
+			if ( response !== false ) {
+				return this.action( response );
+			}
+		}
+	},
+
 	backward: function( event, howMany ) {
 		// Allow for the omission of event
 		if (typeof event === "number") {
@@ -367,7 +371,7 @@ $.widget( namespace.replace( "-", "." ), {
 	},
 
 	forward: function( event ) {
-		this.select( this._action() );
+		this.select( this.action() );
 	},
 
 	index: function( step, branch, relative ) {
