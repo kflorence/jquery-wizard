@@ -390,7 +390,7 @@ $.widget( namespace.replace( "-", "." ), {
 
 	select: function( step, branch ) {
 		var stepIndex = typeof step === "number" ?
-			step : this.index( step, branch );
+			step : this.index( step, branch, true );
 
 		if ( this.isValidStepIndex( stepIndex ) ) {
 			if ( stepIndex !== this._stepIndex ) {
