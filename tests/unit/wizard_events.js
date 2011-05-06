@@ -7,8 +7,9 @@
 module( "wizard: events" );
 
 test( "forward", function() {
-	expect( 2 );
+	expect( 4 );
 
+	// Called on initialization
 	var $wizard = $( "#wizard" ).wizard({
 		afterForward: function() {
 			ok( true, "afterForward event triggered" );
@@ -16,9 +17,9 @@ test( "forward", function() {
 		beforeForward: function() {
 			ok( true, "beforeForward event triggered" );
 		}
-	}).wizard( "forward" );
+	});
 
-	// Not called if forward invoked on last step
+	// Called on selection but not if invoked on last step
 	$wizard.wizard( "select", $wizard.wizard( "stepCount" ) - 1 )
 		.wizard( "forward" );
 });
@@ -26,6 +27,7 @@ test( "forward", function() {
 test( "backward", function() {
 	expect( 2 );
 
+	// Not called on initialization
 	var $wizard = $( "#wizard" ).wizard({
 		afterBackward: function() {
 			ok( true, "afterBackward event triggered" );
@@ -33,10 +35,11 @@ test( "backward", function() {
 		beforeBackward: function() {
 			ok( true, "beforeBackward event triggered" );
 		}
-	}).wizard( "forward" ).wizard( "backward" );
+	});
 
-	// Not called if backward invoked on first step
-	$wizard.wizard( "select", 0 ).wizard( "backward" );
+	// Called when moving backward (after moving forward)
+	// but not if invoked on first step
+	$wizard.wizard( "forward" ).wizard( "backward" ).wizard( "backward" );
 });
 
 })( jQuery );
