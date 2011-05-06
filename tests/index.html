@@ -6,7 +6,6 @@
 
 		<script type="text/javascript" src="../external/jquery/jquery-1.4.min.js"></script>
 		<script type="text/javascript" src="../external/jquery/ui/jquery-ui-1.8.12.min.js"></script>
-
 		<script type="text/javascript" src="../src/jquery.ui.wizard.js"></script>
 
 		<script type="text/javascript" src="qunit/qunit.js"></script>
@@ -15,17 +14,6 @@
 		<script type="text/javascript" src="unit/wizard_events.js"></script>
 		<script type="text/javascript" src="unit/wizard_methods.js"></script>
 		<script type="text/javascript" src="unit/wizard_options.js"></script>
-
-		<script type="text/javascript">
-			jQuery(function( $ ) {
-					// Log to console
-					QUnit.log = function( test ) {
-							if ( typeof console !== "undefined" && console.log ) {
-									console.log( test.message + ":", test.result );
-							}
-					}
-			});
-		</script>
 	</head>
 	<body>
 		<h1 id="qunit-header">jQuery.ui.wizard Unit Tests</h1>
