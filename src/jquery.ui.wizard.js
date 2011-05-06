@@ -221,14 +221,14 @@ $.widget( namespace.replace( "-", "." ), {
 
 		if ( this._stepIndex > -1 ) {
 			if ( !movingForward ) {
-				this._activated.steps.pop();
+				this._activated.steps.splice( this._stepIndex, 1);
 
 				if ( branchID !== this._$branch.attr( "id" ) ) {
 					var currentBranchIndex = $.inArray( branchID, this._activated.branches );
 
 					// Don't remove the default branch
 					if ( currentBranchIndex > 0 ) {
-						this._activated.branches.splice (currentBranchIndex, 1 );
+						this._activated.branches.splice( currentBranchIndex, 1 );
 					}
 				}
 			}
