@@ -218,7 +218,12 @@ $.widget( namespace.replace( "-", "." ), {
 
 		if ( this._stepIndex > -1 ) {
 			if ( !movingForward ) {
-				this._activated.steps.splice( this._stepIndex, 1);
+				var spliceIndex = $.inArray( stepIndex, this._activated.steps ) + 1;
+
+				// Don't remove the initial step
+				if ( spliceIndex > 0 ) {
+					this._activated.steps.splice( spliceIndex );
+				}
 
 				if ( branchID !== this._$branch.attr( "id" ) ) {
 					var currentBranchIndex = $.inArray( branchID, this._activated.branches );
