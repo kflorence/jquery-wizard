@@ -351,14 +351,15 @@ $.widget( namespace.replace( "-", "." ), {
 	},
 
 	branchesActivated: function() {
-		var $branches = $([]),
-			self = this;
+		var i = 0,
+			length = this._activated.branches.length,
+			result = [];
 
-		$.each( this._activated.branches, function( i, branchID ) {
-			$branches = $branches.add( self.branch( branchID ) );
-		});
+		for ( ; i < length; i++ ) {
+			result.push( this.branch( this._activated.branches[ i ] ).get( 0 ) );
+		}
 
-		return $branches;
+		return $( result );
 	},
 
 	form: function() {
@@ -420,14 +421,15 @@ $.widget( namespace.replace( "-", "." ), {
 	},
 
 	stepsActivated: function() {
-		var $steps = $([]),
-			self = this;
+		var i = 0,
+			length = this._activated.steps.length,
+			result = [];
 
-		$.each( this._activated.steps, function( i, stepIndex ) {
-			$steps = $steps.add( self.step( stepIndex ) );
-		});
+		for ( ; i < length; i++ ) {
+			result.push( this.step( this._activated.steps[ i ] ).get( 0 ) );
+		}
 
-		return $steps;
+		return $( result );
 	},
 
 	stepsComplete: function() {
