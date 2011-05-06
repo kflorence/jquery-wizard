@@ -37,7 +37,8 @@
 		<div id="qunit-fixture">
 			<div id="invalid"></div>
 
-			<div id="wizard">
+			<!-- wizard containing form -->
+			<div id="wizard" class="wizard">
 				<h2>Heading</h2>
 
 				<form id="form">
@@ -72,6 +73,19 @@
 					<button type="button" name="submit" class="submit"></button>
 				</form>
 			</div>
+
+			<!-- form outside of wizard -->
+			<form id="form2">
+				<div id="wizard2" class="wizard">
+					<div class="step"></div>
+					<div class="step"></div>
+				</div>
+			</form>
+
+			<!-- form is wizard -->
+			<form id="wizard3" class="wizard">
+				<div class="step"></div>
+			</form>
 		</div>
 	</body>
 </html>

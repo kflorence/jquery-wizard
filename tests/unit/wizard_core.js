@@ -6,13 +6,29 @@
 module( "wizard: core" );
 
 test( "widget method - empty collection", function() {
+	expect( 1 );
+
 	$( "#nonExist" ).wizard();
 	ok( !$( ".ui-wizard" ).length, "Not initialized on an empty collection" );
 });
 
 test( "widget method", function() {
-	var wizard = $( "#wizard" ).wizard().wizard("widget")[0];
-	same( $( "#wizard" )[0], wizard );
+	expect( 1 );
+
+	var $wizard = $( "#wizard" ).wizard().wizard("widget");
+
+	same( $( "#wizard" )[0], $wizard[0] );
+});
+
+test( "widget form", function() {
+	expect( 3 );
+
+	$( ".wizard" ).each(function() {
+		var $wizard = $( this );
+
+		ok( $wizard.wizard( "form" ).length, "Form found for wizard: #"
+			+ $wizard.attr( "id" ) );
+	});
 });
 
 test( "wizard classes", function() {

@@ -147,29 +147,26 @@ $.widget( namespace.replace( "-", "." ), {
 
 		this._$branches = this.element.find( o.branches ).addClass( classes.branch );
 
-		this._$forward = $( o.forward, this.element )
-			.unbind( click )
-			.bind( click, function( event ) {
+		this._$form = ( this.element[0].elements ? this.element :
+			this.element.find( "form" ) || this.element.closest( "form" ) )
+			.addClass( classes.form ).unbind( submit ).bind( submit, function( event ) {
+				return self._trigger( "beforeSubmit" );
+			});
+
+		this._$forward = this._$form.find( o.forward )
+			.unbind( click ).bind( click, function( event ) {
 				self.forward( event );
 			});
 
-		this._$backward = $( o.backward, this.element )
-			.unbind( click )
-			.bind( click, function( event ) {
+		this._$backward = this._$form.find( o.backward )
+			.unbind( click ).bind( click, function( event ) {
 				self.backward( event );
 			});
 
-		this._$submit = $( o.submit, this.element )
-			.unbind( click )
-			.bind( click, function( event ) {
-				self._$form.trigger( "submit" );
-			});
-
-		this._$form = ( this.element[0].elements ? this.element : $( "form", this.element ) )
-			.addClass( classes.form )
-			.unbind( submit )
-			.bind( submit, function( event ) {
-				return self._trigger( "beforeSubmit" );
+		this._$submit = this._$form.find( o.submit )
+			.unbind( click ).bind( click, function( event ) {
+				self._$form.trigger( submit );
+				event.preventDefault();
 			});
 
 		this.select( o.initialStep );
