@@ -109,7 +109,7 @@ $.widget( namespace.replace( "-", "." ), {
 			return;
 		}
 
-		return { $step: $found, stepIndex: index };
+		return index;
 	},
 
 	_create: function() {
@@ -199,56 +199,22 @@ $.widget( namespace.replace( "-", "." ), {
 		return $found;
 	},
 
-	_select: function( $step, stepIndex ) {
-		if ( !this._trigger( "beforeSelect" ) ) {
+	_select: function( stepIndex ) {
+		var o = this.options,
+			$step = this._$steps.eq( stepIndex ),
+			$branch = $step.parents( selectors.branch ),
+			indexOfLastStepInBranch = this.index(
+				$branch.children( o.steps ).filter( ":last" ) ),
+			movingForward = stepIndex > this._stepIndex;
+
+		// Allow before triggers to cancel this selection
+		if ( !this._trigger( "beforeSelect" )
+			|| movingForward && !this._trigger( "beforeForward" )
+			|| !movingForward && !this._trigger( "beforeBackward" ) ) {
 			return;
 		}
 
-		var o = this.options,
-			$branch = $step.parents( selectors.branch ),
-			branchID = $branch.attr( "id" ),
-			indexOfLastStepInBranch = this.index( $branch
-				.children( o.steps )
-				.filter( ":last" ) ),
-			movingForward = stepIndex > this._stepIndex,
-			// Fixes #3583 - http://bugs.jquery.com/ticket/3583
-			optionsHide = $.extend( {}, o.animations.hide.options ),
-			optionsShow = $.extend( {}, o.animations.show.options ),
-			self = this;
-
-		if ( this._stepIndex > -1 ) {
-			if ( !movingForward ) {
-				var spliceIndex = $.inArray( stepIndex, this._activated.steps ) + 1;
-
-				// Don't remove the initial step
-				if ( spliceIndex > 0 ) {
-					this._activated.steps.splice( spliceIndex );
-				}
-
-				if ( branchID !== this._$branch.attr( "id" ) ) {
-					var currentBranchIndex = $.inArray( branchID, this._activated.branches );
-
-					// Don't remove the default branch
-					if ( currentBranchIndex > 0 ) {
-						this._activated.branches.splice( currentBranchIndex, 1 );
-					}
-				}
-			}
-
-			this._$step.animate (o.animations.hide.properties, optionsHide )
-				.removeClass( o.stepClasses.current );
-		}
-
-		if ( movingForward ) {
-			this._activated.steps.push( stepIndex );
-
-			if ( $.inArray( branchID, this._activated.branches ) < 0 ) {
-				this._activated.branches.push( branchID );
-			}
-		}
-
-		$step.animate( o.animations.show.properties, optionsShow )
-			.addClass( o.stepClasses.current );
+		this._updateActivated( o, $step, $branch, stepIndex, movingForward );
 
 		if ( stepIndex === 0 || o.unidirectional
 			|| $step.hasClass( o.stepClasses.unidirectional ) ) {
@@ -272,15 +238,15 @@ $.widget( namespace.replace( "-", "." ), {
 			this._$submit.attr( disabled, true );
 		}
 
-		$.extend( this, {
-			_$step: $step,
-			_$branch: $branch,
-			_stepIndex: stepIndex
-		});
-
-		this._updateProgress();
+		this._updateProgress( o );
 
 		this._trigger( "afterSelect" );
+
+		if ( movingForward ) {
+			this._trigger( "afterForward" );
+		} else {
+			this._trigger( "afterBackward" );
+		}
 	},
 
 	_step: function( step, branch, index, relative ) {
@@ -305,21 +271,60 @@ $.widget( namespace.replace( "-", "." ), {
 		return $step;
 	},
 
-	_updateProgress: function() {
-		var o = this.options,
-			self = this;
+	_updateActivated: function( o, $step, $branch, stepIndex, movingForward ) {
+		var branchID = $branch.attr( "id" );
 
-		this._stepsComplete = Math.max( this.stepsActivated()
-			.filter(function() {
+		if ( movingForward ) {
+			this._activated.steps.push( stepIndex );
+
+			if ( $.inArray( branchID, this._activated.branches ) < 0 ) {
+				this._activated.branches.push( branchID );
+			}
+		} else {
+			var spliceIndex = $.inArray( stepIndex, this._activated.steps ) + 1;
+
+			// Don't remove the initial step
+			if ( spliceIndex > 0 ) {
+				this._activated.steps.splice( spliceIndex );
+			}
+
+			if ( branchID !== this._$branch.attr( "id" ) ) {
+				var currentBranchIndex = $.inArray( branchID, this._activated.branches );
+
+				// Don't remove the default branch
+				if ( currentBranchIndex > 0 ) {
+					this._activated.branches.splice( currentBranchIndex, 1 );
+				}
+			}
+		}
+
+		if ( this._$step ) {
+			this._$step.animate( o.animations.hide.properties,
+					// Fixes #3583 - http://bugs.jquery.com/ticket/3583
+					$.extend( {}, o.animations.hide.options ) )
+				.removeClass( o.stepClasses.current );
+		}
+
+		$step.animate( o.animations.show.properties,
+				// Fixes #3583 - http://bugs.jquery.com/ticket/3583
+				$.extend( {}, o.animations.show.options ) )
+			.addClass( o.stepClasses.current );
+
+		this._$step = $step;
+		this._$branch = $branch;
+		this._stepIndex = stepIndex;
+	},
+
+	_updateProgress: function( o ) {
+		var complete = this.stepsActivated().filter(function() {
 				return !$( this ).hasClass( o.stepClasses.exclude );
-			}).length - 1, 0 );
-
-		this._stepsPossible = Math.max( this.branchesActivated()
-			.children( o.steps )
-			.filter(function() {
+			}).length,
+			possible = this.branchesActivated().children( o.steps ).filter(function() {
 				return !$( this ).hasClass( o.stepClasses.exclude );
-			}).length - 1, 0 );
+			}).length;
 
+		this._stepsComplete = Math.max( 0, complete - 1 );
+		this._stepsPossible = Math.max( 0, possible - 1 );
 		this._stepsRemaining = this._stepsPossible - this._stepsComplete;
 		this._percentComplete = 100 * this._stepsComplete / this._stepsPossible;
 	},
@@ -331,15 +336,9 @@ $.widget( namespace.replace( "-", "." ), {
 			event = undefined;
 		}
 
-		var length = this._activated.steps.length,
-			index = ( length - 1 ) - ( typeof howMany === "number" ? howMany : 1 ),
-			stepIndex = this._activated.steps[ index < 0 ? 0 : index ];
-
-		if ( stepIndex !== undefined  && stepIndex < this._stepIndex
-			&& this._trigger( "beforeBackward", event ) ) {
-			this._select( this.step( stepIndex ), stepIndex );
-			this._trigger( "afterBackward", event );
-		}
+		this.select( this._activated.steps[
+			( this._activated.steps.length - 1 ) -
+			( typeof howMany === "number" ? howMany : 1 ) ] );
 	},
 
 	branch: function( branch ) {
@@ -367,13 +366,7 @@ $.widget( namespace.replace( "-", "." ), {
 	},
 
 	forward: function( event ) {
-		var next = this._action();
-
-		if ( next !== undefined && next.stepIndex > this._stepIndex 
-			&& this._trigger( "beforeForward", event ) ) {
-			this._select( next.$step, next.stepIndex );
-			this._trigger( "afterForward", event  );
-		}
+		this.select( this._action() );
 	},
 
 	index: function( step, branch, relative ) {
@@ -382,7 +375,7 @@ $.widget( namespace.replace( "-", "." ), {
 	},
 
 	isValidStep: function( step ) {
-		return this.isValidIndex( this.index( step ) );
+		return this.isValidStepIndex( this.index( step ) );
 	},
 
 	isValidStepIndex: function( stepIndex ) {
@@ -395,17 +388,21 @@ $.widget( namespace.replace( "-", "." ), {
 	},
 
 	select: function( step, branch ) {
-		var index = this.index( step, branch );
+		var stepIndex = typeof step === "number" ?
+			step : this.index( step, branch );
 
-		if ( this.isValidStepIndex( index ) ) {
-			if ( index !== this._index ) {
-				this._select( this._$steps.eq( index ), index );
+		if ( this.isValidStepIndex( stepIndex ) ) {
+			if ( stepIndex !== this._stepIndex ) {
+				this._select( stepIndex );
 			}
-		} else {
-			throw new Error( 'Unable to find step: ' +
+
+		// Ignore 'undefined' as it may be returned from an action
+		} else if ( step !== undefined ) {
+			throw new Error( 'Cannot move to step: ' +
 				'step="' + step + '", ' +
-				'branch="' + branch + '", ' +
-				'index="' + index + '"' );
+				'stepIndex="' + stepIndex + '", ' +
+				'branch="' + branch + '"'
+			);
 		}
 	},
 
