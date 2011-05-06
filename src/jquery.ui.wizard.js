@@ -15,6 +15,9 @@ var count = 0,
 	click = "click",
 	disabled = "disabled",
 	namespace = "ui-wizard",
+
+	// Used to detect if stepsWrapper is an HTML fragment or a selector
+	rhtmlstring = /^(?:[^<]*(<[\w\W]+>)[^>]*$)/,
 	selectors = {},
 	submit = "submit";
 
@@ -116,8 +119,7 @@ $.widget( namespace.replace( "-", "." ), {
 	},
 
 	_init: function() {
-		var $defBranch,
-			o = this.options,
+		var o = this.options,
 			self = this;
 
 		this._activated = { steps: [], branches: [] };
@@ -132,17 +134,15 @@ $.widget( namespace.replace( "-", "." ), {
 
 		this._stepCount = this._$steps.length;
 
-		this._$defaultBranch = $defBranch = $( o.stepsWrapper )
-			.addClass( o.branches.substr( 1 ) );
+		this._$branch = $( o.stepsWrapper ).addClass( o.branches.substr( 1 ) );
 
-		// Every branch needs a unique ID
-		if ( !$defBranch.attr( "id" ) ) {
-			$defBranch.attr( "id", namespace + "-" + count++ );
+		if ( !this._$branch.attr( "id" ) ) {
+			this._$branch.attr( "id", namespace + "-" + count++ );
 		}
 
-		// Add default branch to the DOM if it is detached
-		if ( !$.contains( $defBranch[ 0 ].ownerDocument.documentElement, $defBranch[ 0 ] ) ) {
-			this._$steps.eq( 0 ).parent().wrapInner( $defBranch );
+		if ( rhtmlstring.test( o.stepsWrapper ) ) {
+			// Wrap steps with the provided HTML string fragment
+			this._$steps.eq( 0 ).parent().wrapInner( this._$branch );
 		}
 
 		this._$branches = this.element.find( o.branches ).addClass( classes.branch );
