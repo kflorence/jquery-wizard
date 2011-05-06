@@ -214,7 +214,17 @@ $.widget( namespace.replace( "-", "." ), {
 			return;
 		}
 
-		this._updateActivated( o, $step, $branch, stepIndex, movingForward );
+		if ( this._$step ) {
+			this._$step.animate( o.animations.hide.properties,
+					// Fixes #3583 - http://bugs.jquery.com/ticket/3583
+					$.extend( {}, o.animations.hide.options ) )
+				.removeClass( o.stepClasses.current );
+		}
+
+		$step.animate( o.animations.show.properties,
+				// Fixes #3583 - http://bugs.jquery.com/ticket/3583
+				$.extend( {}, o.animations.show.options ) )
+			.addClass( o.stepClasses.current );
 
 		if ( stepIndex === 0 || o.unidirectional
 			|| $step.hasClass( o.stepClasses.unidirectional ) ) {
@@ -238,7 +248,12 @@ $.widget( namespace.replace( "-", "." ), {
 			this._$submit.attr( disabled, true );
 		}
 
-		this._updateProgress( o );
+		this._updateActivated( $step, $branch, stepIndex, movingForward );
+		this._updateProgress();
+
+		this._$step = $step;
+		this._$branch = $branch;
+		this._stepIndex = stepIndex;
 
 		this._trigger( "afterSelect" );
 
@@ -271,7 +286,7 @@ $.widget( namespace.replace( "-", "." ), {
 		return $step;
 	},
 
-	_updateActivated: function( o, $step, $branch, stepIndex, movingForward ) {
+	_updateActivated: function( $step, $branch, stepIndex, movingForward ) {
 		var branchID = $branch.attr( "id" );
 
 		if ( movingForward ) {
@@ -297,26 +312,11 @@ $.widget( namespace.replace( "-", "." ), {
 				}
 			}
 		}
-
-		if ( this._$step ) {
-			this._$step.animate( o.animations.hide.properties,
-					// Fixes #3583 - http://bugs.jquery.com/ticket/3583
-					$.extend( {}, o.animations.hide.options ) )
-				.removeClass( o.stepClasses.current );
-		}
-
-		$step.animate( o.animations.show.properties,
-				// Fixes #3583 - http://bugs.jquery.com/ticket/3583
-				$.extend( {}, o.animations.show.options ) )
-			.addClass( o.stepClasses.current );
-
-		this._$step = $step;
-		this._$branch = $branch;
-		this._stepIndex = stepIndex;
 	},
 
-	_updateProgress: function( o ) {
-		var complete = this.stepsActivated().filter(function() {
+	_updateProgress: function() {
+		var o = this.options,
+			complete = this.stepsActivated().filter(function() {
 				return !$( this ).hasClass( o.stepClasses.exclude );
 			}).length,
 			possible = this.branchesActivated().children( o.steps ).filter(function() {
