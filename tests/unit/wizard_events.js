@@ -7,11 +7,14 @@
 module( "wizard: events" );
 
 test( "forward", function() {
-	expect( 1 );
+	expect( 2 );
 
 	var $wizard = $( "#wizard" ).wizard({
-		forward: function() {
-			ok( true, "forward event triggered" );
+		afterForward: function() {
+			ok( true, "afterForward event triggered" );
+		},
+		beforeForward: function() {
+			ok( true, "beforeForward event triggered" );
 		}
 	}).wizard( "forward" );
 
@@ -21,11 +24,14 @@ test( "forward", function() {
 });
 
 test( "backward", function() {
-	expect( 1 );
+	expect( 2 );
 
 	var $wizard = $( "#wizard" ).wizard({
-		backward: function() {
-			ok( true, "backward event triggered" );
+		afterBackward: function() {
+			ok( true, "afterBackward event triggered" );
+		},
+		beforeBackward: function() {
+			ok( true, "beforeBackward event triggered" );
 		}
 	}).wizard( "forward" ).wizard( "backward" );
 
