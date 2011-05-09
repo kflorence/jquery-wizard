@@ -106,8 +106,8 @@ $.widget( namespace.replace( "-", "." ), {
 			this._$branch.attr( "id", namespace + "-" + count++ );
 		}
 
+		// Wrap steps with the provided HTML string fragment
 		if ( rhtmlstring.test( o.stepsWrapper ) ) {
-			// Wrap steps with the provided HTML string fragment
 			this._$steps.eq( 0 ).parent().wrapInner( this._$branch );
 		}
 
@@ -121,18 +121,20 @@ $.widget( namespace.replace( "-", "." ), {
 
 		this._$forward = this._$form.find( o.forward )
 			.unbind( click ).bind( click, function( event ) {
+				event.preventDefault();
 				self.forward( event );
 			});
 
 		this._$backward = this._$form.find( o.backward )
 			.unbind( click ).bind( click, function( event ) {
+				event.preventDefault();
 				self.backward( event );
 			});
 
 		this._$submit = this._$form.find( o.submit )
 			.unbind( click ).bind( click, function( event ) {
-				self._$form.trigger( submit );
 				event.preventDefault();
+				self._$form.trigger( submit );
 			});
 
 		this.select( o.initialStep );
@@ -222,12 +224,7 @@ $.widget( namespace.replace( "-", "." ), {
 		this._stepIndex = stepIndex;
 
 		this._trigger( "afterSelect" );
-
-		if ( movingForward ) {
-			this._trigger( "afterForward" );
-		} else {
-			this._trigger( "afterBackward" );
-		}
+		this._trigger( movingForward ? "afterForward" : "afterBackward" );
 	},
 
 	_step: function( step, branch, index, relative ) {
@@ -319,8 +316,6 @@ $.widget( namespace.replace( "-", "." ), {
 			}
 
 			return index;
-
-		// Looking for an action to tell us what to do next
 		} else {
 			var o = this.options,
 				action = this._$step.attr( o.actionAttribute ),
