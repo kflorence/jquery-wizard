@@ -12,17 +12,22 @@
 
 var count = 0,
 	classes = {},
+	selectors = {},
 	click = "click",
+	submit = "submit",
 	disabled = "disabled",
 	namespace = "ui-wizard",
 
 	// Used to detect if stepsWrapper is an HTML fragment or a selector
 	rhtmlstring = /^(?:[^<]*(<[\w\W]+>)[^>]*$)/,
-	selectors = {},
-	submit = "submit";
+
+	// Determine if an object is an Event object
+	isEvent = function( obj ) {
+		return obj && obj instanceof $.Event;
+	};
 
 $.each( "branch form header step".split( " " ), function() {
-	selectors [ this ] = "." + ( classes[ this ] = namespace + "-" + this );
+	selectors[ this ] = "." + ( classes[ this ] = namespace + "-" + this );
 });
 
 $.widget( namespace.replace( "-", "." ), {
@@ -78,10 +83,60 @@ $.widget( namespace.replace( "-", "." ), {
 		beforeSubmit: null
 	},
 
+	_action: function( callback ) {
+		var o = this.options,
+			action = this._$step.attr( o.actionAttribute ),
+			func = action ? o.actions[ action ] : o.defaultAction,
+			response = $.isFunction( func ) ? func.call( this, this._$step ) : action;
+
+		// An action function can return false or undefined to opt out of
+		// calling select on the response value. Useful for asynchronous actions.
+		if ( response !== false && response !== undefined && $.isFunction( callback ) ) {
+			callback.call( this, response );
+		}
+
+		return response;
+	},
+
 	_create: function() {
 		this._stepIndex = -1;
 		this.element.addClass( namespace +
 			" ui-widget ui-widget-content ui-corner-all" );
+	},
+
+	_find: function( step, branch ) {
+		var stepIndex;
+
+		// Most common use case is selecting a step by index
+		if ( typeof step === "number" ) {
+			stepIndex = branch !== undefined ?
+				this.index( step, branch, true ) : this.index( step );
+
+		// Otherwise, we could be selecting a step or branch by ID, DOM
+		// element or jQuery object. In this case, the 'branch' argument
+		// could become a step index.
+		} else if ( step != null ) {
+			step = this._search( step, this._$steps.add( this._$branches ) );
+
+			if ( step !== null && step.length ) {
+				if ( step.hasClass( classes.branch ) ) {
+					step = this.steps( step ).eq(
+						typeof branch === "number" ? branch : 0 );
+				}
+
+				stepIndex = this.index( step );
+			}
+		}
+
+		if ( this.isValidStepIndex( stepIndex ) ) {
+			return stepIndex;
+		} else {
+			throw new Error( 'Could not find step: ' +
+				'step="' + step + '", ' +
+				'branch="' + branch + '"; ' +
+				'returned: "' + stepIndex + '"'
+			);
+		}
 	},
 
 	_init: function() {
@@ -90,14 +145,13 @@ $.widget( namespace.replace( "-", "." ), {
 
 		this._activated = { steps: [], branches: [] };
 		this._stepsComplete = this._stepsPossible = this._stepsRemaining =
-			this._percentComplete = 0;
+			this._percentComplete = this._stepCount = 0;
 
 		this._$header = this.element.find( o.header ).addClass( classes.header +
 			" ui-widget-header ui-helper-reset ui-corner-all" );
-
 		this._$steps = this.element.find( o.steps ).hide().addClass( classes.step +
 			" ui-widget-content ui-corner-all" );
-
+		this._$step = this._$steps.eq( 0 );
 		this._stepCount = this._$steps.length;
 
 		this._$branch = $( o.stepsWrapper ).addClass( o.branches.substr( 1 ) );
@@ -113,10 +167,10 @@ $.widget( namespace.replace( "-", "." ), {
 
 		this._$branches = this.element.find( o.branches ).addClass( classes.branch );
 
-		this._$form = ( this.element[0].elements ? this.element :
+		this._$form = ( this.element[ 0 ].elements ? this.element :
 			this.element.find( "form" ) || this.element.closest( "form" ) )
 			.addClass( classes.form ).unbind( submit ).bind( submit, function( event ) {
-				return self._trigger( "beforeSubmit" );
+				return self._trigger( "beforeSubmit", event );
 			});
 
 		this._$forward = this._$form.find( o.forward )
@@ -141,7 +195,7 @@ $.widget( namespace.replace( "-", "." ), {
 	},
 
 	_search: function( needle, haystack ) {
-		var $found,
+		var $found = null,
 			$haystack = haystack instanceof jQuery ? haystack : $( haystack ),
 			type = typeof needle;
 
@@ -149,7 +203,7 @@ $.widget( namespace.replace( "-", "." ), {
 			if ( type === "number" ) {
 				$found = $haystack.eq( needle );
 			} else if ( type === "string" ) {
-				$found = $haystack.filter( needle[ 0 ] == "#" ? needle : "#" + needle );
+				$found = $( needle.charAt( 0 ) === "#" ? needle : "#" + needle );
 			} else if ( type === "object" ) {
 				if ( needle instanceof jQuery && needle.length ) {
 					needle = needle[ 0 ];
@@ -157,8 +211,11 @@ $.widget( namespace.replace( "-", "." ), {
 
 				// Make sure we have a DOM object
 				if ( needle.nodeType ) {
-					$found = $haystack.filter(function() {
-						return this === needle;
+					$haystack.each(function() {
+						if ( this === needle ) {
+							$found = $( this );
+							return false;
+						}
 					});
 				}
 			}
@@ -167,32 +224,42 @@ $.widget( namespace.replace( "-", "." ), {
 		return $found;
 	},
 
-	_select: function( stepIndex ) {
-		var o = this.options,
-			$step = this._$steps.eq( stepIndex ),
-			$branch = $step.parents( selectors.branch ),
-			indexOfLastStepInBranch = this.index(
-				$branch.children( o.steps ).filter( ":last" ) ),
-			movingForward = stepIndex > this._stepIndex;
-
-		// Allow before triggers to cancel this selection
-		if ( !this._trigger( "beforeSelect" )
-			|| movingForward && !this._trigger( "beforeForward" )
-			|| !movingForward && !this._trigger( "beforeBackward" ) ) {
+	_select: function( stepIndex, event ) {
+		if ( stepIndex == null || stepIndex === this._stepIndex ) {
 			return;
 		}
 
-		if ( this._$step ) {
-			this._$step.animate( o.animations.hide.properties,
-					// Fixes #3583 - http://bugs.jquery.com/ticket/3583
-					$.extend( {}, o.animations.hide.options ) )
-				.removeClass( o.stepClasses.current );
+		var $step = this._$steps.eq( stepIndex ),
+			$branch = $step.closest( selectors.branch ),
+			movingForward = stepIndex > this._stepIndex,
+			uiHash = {
+				step: $step,
+				branch: $branch,
+				stepIndex: stepIndex,
+				movingForward: movingForward
+			};
+
+		if ( !this._trigger( "beforeSelect", event, uiHash )
+			|| movingForward && !this._trigger( "beforeForward", event, uiHash )
+			|| !movingForward && !this._trigger( "beforeBackward", event, uiHash ) ) {
+			return;
 		}
 
-		$step.animate( o.animations.show.properties,
+		var o = this.options,
+			branch = $branch.attr( "id" ),
+			lastStepIndex = this.index( this.steps( $branch ).filter( ":last" ) );
+
+		if ( this._$step ) {
+			this._$step.removeClass( o.stepClasses.current )
+				.animate( o.animations.hide.properties,
+					// Fixes #3583 - http://bugs.jquery.com/ticket/3583
+					$.extend( {}, o.animations.hide.options ) );
+		}
+
+		$step.addClass( o.stepClasses.current )
+			.animate( o.animations.show.properties,
 				// Fixes #3583 - http://bugs.jquery.com/ticket/3583
-				$.extend( {}, o.animations.show.options ) )
-			.addClass( o.stepClasses.current );
+				$.extend( {}, o.animations.show.options ) );
 
 		if ( stepIndex === 0 || o.unidirectional
 			|| $step.hasClass( o.stepClasses.unidirectional ) ) {
@@ -201,7 +268,7 @@ $.widget( namespace.replace( "-", "." ), {
 			this._$backward.removeAttr( disabled );
 		}
 
-		if ( ( stepIndex === indexOfLastStepInBranch
+		if ( ( stepIndex === lastStepIndex
 			&& !$step.attr( o.actionAttribute ) )
 			|| $step.hasClass( o.stepClasses.stop ) ) {
 			this._$forward.attr( disabled, true );
@@ -216,15 +283,16 @@ $.widget( namespace.replace( "-", "." ), {
 			this._$submit.attr( disabled, true );
 		}
 
-		this._updateActivated( $step, $branch, stepIndex, movingForward );
-		this._updateProgress();
+		this._updateActivated( stepIndex, branch, movingForward );
 
 		this._$step = $step;
 		this._$branch = $branch;
 		this._stepIndex = stepIndex;
 
-		this._trigger( "afterSelect" );
-		this._trigger( movingForward ? "afterForward" : "afterBackward" );
+		this._updateProgress();
+
+		this._trigger( "afterSelect", event, uiHash );
+		this._trigger( movingForward ? "afterForward" : "afterBackward", event, uiHash );
 	},
 
 	_step: function( step, branch, index, relative ) {
@@ -235,7 +303,7 @@ $.widget( namespace.replace( "-", "." ), {
 			branch = undefined;
 		}
 
-		var $steps = branch ? this.steps( branch ) : this._$steps,
+		var $steps = branch !== undefined ? this.steps( branch ) : this._$steps,
 			$step = this._search( step, $steps );
 
 		// If index is true, we return the step index instead of the step itself
@@ -249,14 +317,12 @@ $.widget( namespace.replace( "-", "." ), {
 		return $step;
 	},
 
-	_updateActivated: function( $step, $branch, stepIndex, movingForward ) {
-		var branchID = $branch.attr( "id" );
-
+	_updateActivated: function( stepIndex, branch, movingForward ) {
 		if ( movingForward ) {
 			this._activated.steps.push( stepIndex );
 
-			if ( $.inArray( branchID, this._activated.branches ) < 0 ) {
-				this._activated.branches.push( branchID );
+			if ( $.inArray( branch, this._activated.branches ) < 0 ) {
+				this._activated.branches.push( branch );
 			}
 		} else {
 			var spliceIndex = $.inArray( stepIndex, this._activated.steps ) + 1;
@@ -266,8 +332,8 @@ $.widget( namespace.replace( "-", "." ), {
 				this._activated.steps.splice( spliceIndex );
 			}
 
-			if ( branchID !== this._$branch.attr( "id" ) ) {
-				var currentBranchIndex = $.inArray( branchID, this._activated.branches );
+			if ( branch !== this._$branch.attr( "id" ) ) {
+				var currentBranchIndex = $.inArray( branch, this._activated.branches );
 
 				// Don't remove the default branch
 				if ( currentBranchIndex > 0 ) {
@@ -278,74 +344,47 @@ $.widget( namespace.replace( "-", "." ), {
 	},
 
 	_updateProgress: function() {
-		var o = this.options,
-			complete = this.stepsActivated().filter(function() {
-				return !$( this ).hasClass( o.stepClasses.exclude );
-			}).length,
-			possible = this.branchesActivated().children( o.steps ).filter(function() {
-				return !$( this ).hasClass( o.stepClasses.exclude );
-			}).length;
+		var o = this.options;
 
-		this._stepsComplete = Math.max( 0, complete - 1 );
-		this._stepsPossible = Math.max( 0, possible - 1 );
+		this._stepsComplete = Math.max( 0, this.stepsActivated()
+			.filter(function() {
+				return !$( this ).hasClass( o.stepClasses.exclude );
+			}).length - 1 );
+
+		this._stepsPossible = Math.max( 0, this.branchesActivated()
+			.children( selectors.step ).filter(function() {
+				return !$( this ).hasClass( o.stepClasses.exclude );
+			}).length - 1 );
+
 		this._stepsRemaining = this._stepsPossible - this._stepsComplete;
 		this._percentComplete = 100 * this._stepsComplete / this._stepsPossible;
 	},
 
-	action: function( response ) {
-		if ( arguments.length ) {
-			var index,
-				$found = this._search( response, typeof response === "number" ?
-				this._$steps : this._$steps.add( this._$branches ) );
-
-			if ( $found !== undefined && $found.length ) {
-				if ( $found.hasClass( classes.branch ) ) {
-					$found = this.steps( $found ).filter( ":first" );
-				}
-
-				index = this.index( $found );
-			}
-
-			if ( !this.isValidStepIndex( index ) ) {
-				throw new Error( 'Unexpected state encountered: ' +
-					'action="' + action + '", ' +
-					'response="' + response + '", ' +
-					'index="' + index + '"' );
-
-				return;
-			}
-
-			return index;
-		} else {
-			var o = this.options,
-				action = this._$step.attr( o.actionAttribute ),
-				func = action ? o.actions[ action ] : o.defaultAction,
-				response = $.isFunction( func ) ? func.call( this, this._$step ) : action;
-
-			if ( response !== false ) {
-				return this.action( response );
-			}
-		}
-	},
-
 	backward: function( event, howMany ) {
-		// Allow for the omission of event
-		if (typeof event === "number") {
+		// Allow omission of the event argument
+		if ( event == null || !isEvent( event ) ) {
 			howMany = event;
-			event = undefined;
 		}
 
-		this.select( this._activated.steps[
-			( this._activated.steps.length - 1 ) -
-			( typeof howMany === "number" ? howMany : 1 ) ] );
+		if ( typeof howMany !== "number" || howMany < 1 ) {
+			howMany = 1;
+		}
+
+		var index = this._activated.steps.length - ( howMany + 1 ),
+			stepIndex = this._activated.steps[ index > 0 ? index : 0 ];
+
+		this._select( stepIndex, event );
 	},
 
 	branch: function( branch ) {
-		return arguments.length ? this._search( branch, this._$branches ) : this._$branch;
+		return arguments.length ?
+			this._search( branch, this._$branches ) :
+			this._$branch;
 	},
 
 	branches: function( branch ) {
-		return arguments.length ? this.branch( branch ).children( selectors.branches ) :
+		return arguments.length ?
+			this.branch( branch ).children( selectors.branch ) :
 			this._$branches;
 	},
 
@@ -355,7 +394,7 @@ $.widget( namespace.replace( "-", "." ), {
 			result = [];
 
 		for ( ; i < length; i++ ) {
-			result.push( this.branch( this._activated.branches[ i ] ).get( 0 ) );
+			result.push( this.branch( this._activated.branches[ i ] )[ 0 ] );
 		}
 
 		return $( result );
@@ -365,12 +404,19 @@ $.widget( namespace.replace( "-", "." ), {
 		return this._$form;
 	},
 
-	forward: function( event ) {
-		this.select( this.action() );
+	forward: function( event, howMany ) {
+		if ( event == null || !isEvent( event ) ) {
+			howMany = event;
+		}
+
+		this._action(function( response ) {
+			this.select( event, response );
+		});
 	},
 
 	index: function( step, branch, relative ) {
-		return arguments.length ? this._step( step, branch, true, relative ) :
+		return arguments.length ?
+			this._step( step, branch, true, relative ) :
 			this._stepIndex;
 	},
 
@@ -379,7 +425,8 @@ $.widget( namespace.replace( "-", "." ), {
 	},
 
 	isValidStepIndex: function( stepIndex ) {
-		return typeof stepIndex === "number" && stepIndex >= 0
+		return typeof stepIndex === "number"
+			&& stepIndex >= 0
 			&& stepIndex < this._stepCount;
 	},
 
@@ -387,27 +434,20 @@ $.widget( namespace.replace( "-", "." ), {
 		return this._percentComplete;
 	},
 
-	select: function( step, branch ) {
-		var stepIndex = typeof step === "number" ?
-			step : this.index( step, branch, true );
-
-		if ( this.isValidStepIndex( stepIndex ) ) {
-			if ( stepIndex !== this._stepIndex ) {
-				this._select( stepIndex );
-			}
-
-		// Ignore 'undefined' as it may be returned from an action
-		} else if ( step !== undefined ) {
-			throw new Error( 'Cannot move to step: ' +
-				'step="' + step + '", ' +
-				'stepIndex="' + stepIndex + '", ' +
-				'branch="' + branch + '"'
-			);
+	select: function( event, step, branch ) {
+		// Allow omission of the event argument
+		if ( event == null || !isEvent( event ) ) {
+			branch = step;
+			step = event;
 		}
+
+		this._select( this._find( step, branch ), event );
 	},
 
 	step: function( step, branch ) {
-		return arguments.length ? this._step( step, branch ) : this._$step;
+		return arguments.length ?
+			this._step( step, branch ) :
+			this._$step;
 	},
 
 	stepCount: function() {
@@ -415,7 +455,8 @@ $.widget( namespace.replace( "-", "." ), {
 	},
 
 	steps: function( branch ) {
-		return arguments.length ? this.branch( branch ).children( selectors.step ) :
+		return arguments.length ?
+			this.branch( branch ).children( selectors.step ) :
 			this._$steps;
 	},
 
@@ -425,7 +466,7 @@ $.widget( namespace.replace( "-", "." ), {
 			result = [];
 
 		for ( ; i < length; i++ ) {
-			result.push( this.step( this._activated.steps[ i ] ).get( 0 ) );
+			result.push( this.step( this._activated.steps[ i ] )[ 0 ] );
 		}
 
 		return $( result );
