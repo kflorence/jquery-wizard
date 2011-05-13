@@ -337,14 +337,7 @@ $.widget( namespace.replace( "-", "." ), {
 	},
 
 	_step: function( step, branch, index, relative ) {
-		// Allow for the omission of branch argument
-		if ( typeof branch === "boolean" ) {
-			relative = index;
-			index = branch;
-			branch = undefined;
-		}
-
-		var $steps = branch == undefined ? this.elements.steps : this.steps( branch ),
+		var $steps = branch === undefined ? this.elements.steps : this.steps( branch ),
 			$step = this._find( step, $steps );
 
 		// If index is true, we return the step index instead of the step itself
@@ -411,8 +404,7 @@ $.widget( namespace.replace( "-", "." ), {
 	},
 
 	index: function( step, branch, relative ) {
-		return arguments.length ? this._step( step, branch, true, relative ) :
-			this.wizard.stepIndex;
+		return arguments.length ? this._step( step, branch, true, relative ) : this.wizard.stepIndex;
 	},
 
 	isValidStep: function( step ) {
@@ -438,7 +430,7 @@ $.widget( namespace.replace( "-", "." ), {
 	},
 
 	stepCount: function() {
-		return this._stepCount;
+		return this.wizard.stepCount;
 	},
 
 	steps: function( branch ) {
