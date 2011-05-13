@@ -3,7 +3,7 @@
  *
  * @author Kyle Florence <kyle[dot]florence[at]gmail[dot]com>
  * @website https://github.com/kflorence/jquery-ui-wizard/
- * @version 0.2.0
+ * @version 0.2.1
  *
  * Dual licensed under the MIT and BSD licenses.
  */
@@ -21,18 +21,21 @@ var count = 0,
 	number = "number",
 	submit = "submit",
 	disabled = "disabled",
+
+	afterBackward = "afterBackward",
+	afterForward = "afterForward",
+	afterSelect = "afterSelect",
+	beforeBackward = "beforeBackward",
+	beforeForward = "beforeForward",
+	beforeSelect = "beforeSelect",
+	beforeSubmit = "beforeSubmit",
+
 	namespace = "ui-wizard",
+	stepClasses = "ui-widget-content ui-corner-all",
+	headerClasses = "ui-widget-header ui-helper-reset ui-corner-all",
+	widgetClasses = "ui-widget ui-widget-content ui-corner-all";
 
-	// Base classes for widget components
-	baseClasses = {
-		header: "ui-widget-header ui-helper-reset ui-corner-all",
-		steps: "ui-widget-content ui-corner-all",
-		widget: "ui-widget ui-widget-content ui-corner-all"
-	},
-
-	// Used to detect if stepsWrapper is an HTML fragment or a selector
-	rhtmlstring = /^(?:[^<]*(<[\w\W]+>)[^>]*$)/;
-
+// Generate selectors and classNames for common wizard elements
 $.each( "branch form header step wrapper".split( " " ), function() {
 	selector[ this ] = "." + ( className[ this ] = namespace + "-" + this );
 });
@@ -108,7 +111,7 @@ $.widget( namespace.replace( "-", "." ), {
 		var self = this,
 			o = self.options,
 			$element = self.element
-				.addClass( namespace + " " + baseClasses.widget ),
+				.addClass( namespace + " " + widgetClasses ),
 			$elements = self.elements = {},
 			$form = $element[ 0 ].elements ? $element :
 				$element.find( form ) || $element.closest( form ),
@@ -119,8 +122,8 @@ $.widget( namespace.replace( "-", "." ), {
 			submit: $form.find( o.submit ),
 			forward: $form.find( o.forward ),
 			backward: $form.find( o.backward ),
-			header: $element.find( o.header ).addClass( className.header + " " + baseClasses.header ),
-			steps: $element.find( o.steps ).hide().addClass( className.step + " " + baseClasses.steps ),
+			header: $element.find( o.header ).addClass( className.header + " " + headerClasses ),
+			steps: $element.find( o.steps ).hide().addClass( className.step + " " + stepClasses ),
 			stepsWrapper: $steps.parent().addClass( className.wrapper + " " + o.branches.substr( 1 ) ),
 			branches: $element.find( o.branches ).addClass( className.branch )
 		});
@@ -130,22 +133,8 @@ $.widget( namespace.replace( "-", "." ), {
 			$elements.stepsWrapper.attr( id, namespace + "-" + ++count );
 		}
 
-		$.extend( self.wizard = {}, {
-			step: null,
-			stepCount: $elements.steps.length,
-			stepIndex: -1,
-			stepsComplete: 0,
-			stepsPossible: 0,
-			stepsRemaining: 0,
-			stepsActivated: [],
-			percentComplete: 0,
-			branch: null,
-			branchLabel: "",
-			branchesActivated: []
-		});
-
 		$elements.form.unbind( submit ).bind( submit, function( event ) {
-			return self._trigger( "beforeSubmit", event );
+			return self._trigger( beforeSubmit, event );
 		});
 
 		$elements.forward.unbind( click ).bind( click, function( event ) {
@@ -162,6 +151,20 @@ $.widget( namespace.replace( "-", "." ), {
 			event.preventDefault();
 			self._$form.trigger( submit );
 		});
+
+		self.wizard = {
+			step: null,
+			stepCount: $elements.steps.length,
+			stepIndex: -1,
+			stepsComplete: 0,
+			stepsPossible: 0,
+			stepsRemaining: 0,
+			stepsActivated: [],
+			percentComplete: 0,
+			branch: null,
+			branchLabel: "",
+			branchesActivated: []
+		};
 
 		self.select( o.initialStep );
 	},
@@ -249,9 +252,9 @@ $.widget( namespace.replace( "-", "." ), {
 			}, event = null;
 
 		if ( typeof stepIndex !== number || stepIndex === wizard.stepIndex
-			|| !self._trigger( "beforeSelect", event, uiHash )
-			|| movingForward && !self._trigger( "beforeForward", event, uiHash )
-			|| !movingForward && !self._trigger( "beforeBackward", event, uiHash ) ) {
+			|| !self._trigger( beforeSelect, event, uiHash )
+			|| movingForward && !self._trigger( beforeForward, event, uiHash )
+			|| !movingForward && !self._trigger( beforeBackward, event, uiHash ) ) {
 			return;
 		}
 
@@ -329,8 +332,8 @@ $.widget( namespace.replace( "-", "." ), {
 			percentComplete: ( 100 * c / p )
 		});
 
-		self._trigger( "afterSelect", event, wizard );
-		self._trigger( movingForward ? "afterForward" : "afterBackward", event, wizard );
+		self._trigger( afterSelect, event, wizard );
+		self._trigger( movingForward ? afterForward : afterBackward, event, wizard );
 	},
 
 	_step: function( step, branch, index, relative ) {
@@ -358,14 +361,9 @@ $.widget( namespace.replace( "-", "." ), {
 	backward: function( howMany ) {
 		var stepsActivated = this.wizard.stepsActivated;
 
-		if ( typeof howMany !== number || howMany < 1 ) {
-			howMany = 1;
-		}
-
-		var index = stepsActivated.length - ( howMany + 1 ),
-			stepIndex = stepsActivated[ index > 0 ? index : 0 ];
-
-		this._select( stepIndex );
+		this._select( stepsActivated[ Math.max( 0,
+			( stepsActivated.length - 1 ) -
+			( typeof howMany === number && howMany > 0 ? howMany : 1 ) ) ] );
 	},
 
 	branch: function( branch ) {
@@ -392,6 +390,12 @@ $.widget( namespace.replace( "-", "." ), {
 	},
 
 	destroy: function() {
+		this.element.removeClass( namespace + " " + widgetClasses );
+		this.elements.form.removeClass( className.form );
+		this.elements.header.removeClass( className.header + " " + headerClasses );
+		this.elements.steps.show().removeClass( className.step + " " + stepClasses );
+		this.elements.stepsWrapper.removeClass( className.wrapper + " " + o.branches.substr( 1 ) );
+		this.elements.branches.removeClass( className.branch );
 
 		$.Widget.prototype.destroy.call( this );
 	},
