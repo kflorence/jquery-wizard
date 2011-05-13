@@ -204,8 +204,7 @@ $.widget( namespace.replace( "-", "." ), {
 
 		// Most common use case is selecting a step by index
 		if ( typeof step === number ) {
-			stepIndex = branch !== undefined ?
-				this.index( step, branch, true ) : this.index( step );
+			stepIndex = this.index( step, branch, true );
 
 		// Otherwise, we could be selecting a step or branch by ID, DOM
 		// element or jQuery object. In this case, the 'branch' argument
