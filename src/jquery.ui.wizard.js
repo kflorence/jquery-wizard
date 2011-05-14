@@ -93,18 +93,22 @@ $.widget( namespace.replace( "-", "." ), {
 	},
 
 	_action: function( callback ) {
-		var o = this.options,
-			action = this.wizard.step.attr( o.actionAttribute ),
-			func = action ? o.actions[ action ] : o.defaultAction,
-			response = $.isFunction( func ) ? func.call( this, this.wizard.step ) : action;
+		if ( this.wizard.step ) {
+			var o = this.options,
+				action = this.wizard.step.attr( o.actionAttribute ),
+				func = action ? o.actions[ action ] : o.defaultAction,
+				response = $.isFunction( func ) ? func.call( this, this.wizard.step ) : action;
 
-		// An action function can return false or undefined to opt out of
-		// calling select on the response value. Useful for asynchronous actions.
-		if ( response !== false && response !== undefined && $.isFunction( callback ) ) {
-			callback.call( this, response );
+			// An action function can return false or undefined to opt out of
+			// calling select on the response value. Useful for asynchronous actions.
+			if ( response !== false && response !== undefined && $.isFunction( callback ) ) {
+				callback.call( this, response );
+			}
+
+			return response;
+		} else {
+			throw new Error( 'Unexpected state encountered: step not selected.' );
 		}
-
-		return response;
 	},
 
 	_create: function() {
@@ -214,8 +218,7 @@ $.widget( namespace.replace( "-", "." ), {
 
 			if ( step !== null && step.length ) {
 				if ( step.hasClass( className.branch ) ) {
-					step = this.steps( step ).eq(
-						typeof branch === number ? branch : 0 );
+					step = this.steps( step ).eq( typeof branch === number ? branch : 0 );
 				}
 
 				stepIndex = this.index( step );
