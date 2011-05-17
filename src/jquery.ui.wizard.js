@@ -92,20 +92,12 @@ $.widget( namespace.replace( "-", "." ), {
 		beforeSubmit: null
 	},
 
-	_action: function( callback ) {
-		if ( this.wizard.step ) {
-			var o = this.options,
-				action = this.wizard.step.attr( o.actionAttribute ),
-				func = action ? o.actions[ action ] : o.defaultAction,
-				response = $.isFunction( func ) ? func.call( this, this.wizard.step ) : action;
+	_action: function( $step ) {
+		if ( $step || ( $step = this.wizard.step ) ) {
+			var action = $step.attr( this.options.actionAttribute ),
+				func = action ? this.options.actions[ action ] : this.options.defaultAction;
 
-			// An action function can return false or undefined to opt out of
-			// calling select on the response value. Useful for asynchronous actions.
-			if ( response !== false && response !== undefined && $.isFunction( callback ) ) {
-				callback.call( this, response );
-			}
-
-			return response;
+			return $.isFunction( func ) ? func.call( this, $step ) : action;
 		} else {
 			throw new Error( 'Unexpected state encountered: step not selected.' );
 		}
@@ -174,10 +166,11 @@ $.widget( namespace.replace( "-", "." ), {
 	},
 
 	_fastForward: function( toIndex ) {
-		var stepIndex = this.wizard.stepIndex;
+		var response,
+			stepIndex = this.wizard.stepIndex;
 
 		while( stepIndex < toIndex ) {
-
+			response = this._action();
 		}
 
 		if ( stepIndex === toIndex ) {
@@ -417,9 +410,11 @@ $.widget( namespace.replace( "-", "." ), {
 	},
 
 	forward: function( howMany ) {
-		this._action(function( response ) {
+		var response;
+
+		if ( ( response = this._action() ) !== undefined ) {
 			this.select( response );
-		});
+		}
 	},
 
 	index: function( step, branch, relative ) {
