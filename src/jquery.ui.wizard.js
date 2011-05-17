@@ -69,6 +69,7 @@ $.widget( namespace.replace( "-", "." ), {
 		},
 		enableSubmit: false,
 		forward: ".forward",
+		fastForward: true,
 		header: ":header:first",
 		initialStep: 0,
 		stepClasses: {
@@ -167,14 +168,35 @@ $.widget( namespace.replace( "-", "." ), {
 
 	_fastForward: function( toIndex ) {
 		var response,
-			stepIndex = this.wizard.stepIndex;
+			trail = [],
+			uiHash = this._uiHash( this.wizard.stepIndex );
 
-		while( stepIndex < toIndex ) {
-			response = this._action();
+		// We are assuming that we won't overstep toIndex on the way there
+		while( uiHash.stepIndex < toIndex ) {
+			// Faulty actions return undefined.  This section will need updating
+			// when asynchronous actions are fully supported
+			if ( ( response = this._action( uiHash.step ) ) !== undefined ) {
+				// Invalid responses will yield a null uiHash
+				if ( ( uiHash = this._uiHash( this._index( response ) ) ) !== null ) {
+					trail.push( uiHash );
+					continue;
+				}
+			}
+
+			break;
 		}
 
-		if ( stepIndex === toIndex ) {
-			this._select( stepIndex );
+		if ( uiHash.stepIndex === toIndex ) {
+			while ( ( uiHash = trail.shift() ) !== undefined ) {
+				this._updateActivated( uiHash );
+			}
+			console.log(this.wizard);
+		} else {
+			throw new Error(
+				'Fast forward failed on ' +
+				'stepIndex="' + uiHash.stepIndex + '", ' +
+				'toIndex="' + toIndex + '"'
+			);
 		}
 	},
 
@@ -255,7 +277,15 @@ $.widget( namespace.replace( "-", "." ), {
 			return;
 		}
 
-		this._updateActivated( uiHash );
+		// Use fastForwarding if enabled and going more than one step forward
+		if ( uiHash.movingForward && o.fastForward
+			&& ( stepIndex - this.wizard.stepIndex ) > 1 ) {
+			this._fastForward( stepIndex );
+
+		// Otherwise, just select the one step
+		} else {
+			this._updateActivated( uiHash );
+		}
 
 		if ( this.wizard.step ) {
 			this.wizard.step.removeClass( o.stepClasses.current )
