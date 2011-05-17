@@ -173,6 +173,18 @@ $.widget( namespace.replace( "-", "." ), {
 		self.select( o.initialStep );
 	},
 
+	_fastForward: function( toIndex ) {
+		var stepIndex = this.wizard.stepIndex;
+
+		while( stepIndex < toIndex ) {
+
+		}
+
+		if ( stepIndex === toIndex ) {
+			this._select( stepIndex );
+		}
+	},
+
 	_find: function( needle, haystack ) {
 		var $found = null,
 			$haystack = haystack instanceof jQuery ? haystack : $( haystack ),
@@ -237,105 +249,67 @@ $.widget( namespace.replace( "-", "." ), {
 	},
 
 	_select: function( stepIndex ) {
-		var self = this,
-			o = self.options,
-			wizard = self.wizard,
-			$elements = self.elements,
-			$step = $elements.steps.eq( stepIndex ),
-			$branch = $step.closest( selector.branch ),
-			branchLabel = $branch.attr( id ),
-			movingForward = stepIndex > wizard.stepIndex,
-			lastStepIndex = this.index( this.steps( $branch ).filter( ":last" ) ),
-			uiHash = {
-				step: $step,
-				branch: $branch,
-				stepIndex: stepIndex,
-				movingForward: movingForward
-			}, event = null;
+		var o = this.options,
+			uiHash = this._uiHash( stepIndex ),
+			lastStepIndex = this.index( this.steps( uiHash.branch ).filter( ":last" ) ),
+			// FIXME
+			event = null;
 
-		if ( typeof stepIndex !== number || stepIndex === wizard.stepIndex
-			|| !self._trigger( beforeSelect, event, uiHash )
-			|| movingForward && !self._trigger( beforeForward, event, uiHash )
-			|| !movingForward && !self._trigger( beforeBackward, event, uiHash ) ) {
+		if ( typeof stepIndex !== number || stepIndex === this.wizard.stepIndex
+			|| !this._trigger( beforeSelect, event, uiHash )
+			|| uiHash.movingForward && !this._trigger( beforeForward, event, uiHash )
+			|| !uiHash.movingForward && !this._trigger( beforeBackward, event, uiHash ) ) {
 			return;
 		}
 
-		if ( movingForward ) {
-			wizard.stepsActivated.push( stepIndex );
+		this._updateActivated( uiHash );
 
-			if ( $.inArray( branchLabel, wizard.branchesActivated ) < 0 ) {
-				wizard.branchesActivated.push( branchLabel );
-			}
-		} else {
-			var spliceIndex = $.inArray( stepIndex, wizard.stepsActivated ) + 1;
-
-			// Don't remove the initial step
-			if ( spliceIndex > 0 ) {
-				wizard.stepsActivated.splice( spliceIndex );
-			}
-
-			if ( branchLabel !== wizard.branchLabel ) {
-				var branchIndex = $.inArray( branchLabel, wizard.branchesActivated );
-
-				// Don't remove the default branch
-				if ( branchIndex > 0 ) {
-					wizard.branchesActivated.splice( branchIndex, 1 );
-				}
-			}
-		}
-
-		if ( wizard.step ) {
-			wizard.step.removeClass( o.stepClasses.current )
+		if ( this.wizard.step ) {
+			this.wizard.step.removeClass( o.stepClasses.current )
 				.animate( o.animations.hide.properties,
 					// Fixes #3583 - http://bugs.jquery.com/ticket/3583
 					$.extend( {}, o.animations.hide.options ) );
 		}
 
-		$step.addClass( o.stepClasses.current )
+		uiHash.step.addClass( o.stepClasses.current )
 			.animate( o.animations.show.properties,
 				// Fixes #3583 - http://bugs.jquery.com/ticket/3583
 				$.extend( {}, o.animations.show.options ) );
 
 		if ( stepIndex === 0 || o.unidirectional
-			|| $step.hasClass( o.stepClasses.unidirectional ) ) {
-			$elements.backward.attr( disabled, true );
+			|| uiHash.step.hasClass( o.stepClasses.unidirectional ) ) {
+			this.elements.backward.attr( disabled, true );
 		} else {
-			$elements.backward.removeAttr( disabled );
+			this.elements.backward.removeAttr( disabled );
 		}
 
-		if ( ( stepIndex === lastStepIndex
-			&& !$step.attr( o.actionAttribute ) )
-			|| $step.hasClass( o.stepClasses.stop ) ) {
-			$elements.forward.attr( disabled, true );
+		if ( ( stepIndex === lastStepIndex && !uiHash.step.attr( o.actionAttribute ) )
+			|| uiHash.step.hasClass( o.stepClasses.stop ) ) {
+			this.elements.forward.attr( disabled, true );
 		} else {
-			$elements.forward.removeAttr( disabled );
+			this.elements.forward.removeAttr( disabled );
 		}
 
-		if ( $elements.form.length && ( o.enableSubmit
-			|| $step.hasClass(o.stepClasses.submit ) ) ) {
-			$elements.submit.removeAttr( disabled );
+		if ( o.enableSubmit || uiHash.step.hasClass(o.stepClasses.submit ) ) {
+			this.elements.submit.removeAttr( disabled );
 		} else {
-			$elements.submit.attr( disabled, true );
+			this.elements.submit.attr( disabled, true );
 		}
 
 		// Calculate steps complete/possible excluding steps with the exclude class
 		var f = function() { return !$( this ).hasClass( o.stepClasses.exclude ); },
-			c = ( self.stepsActivated().filter( f ).length - 1 ),
-			p = ( self.branchesActivated().children( selector.step ).filter( f ).length - 1 );
+			c = ( this.stepsActivated().filter( f ).length - 1 ),
+			p = ( this.branchesActivated().children( selector.step ).filter( f ).length - 1 );
 
-		$.extend( wizard, {
-			step: $step,
-			branch: $branch,
-			stepIndex: stepIndex,
-			branchLabel: branchLabel,
+		$.extend( this.wizard, uiHash, {
 			stepsComplete: c,
 			stepsPossible: p,
 			stepsRemaining: ( p - c ),
 			percentComplete: ( 100 * c / p )
 		});
 
-		self._trigger( afterSelect, event, wizard );
-		self._trigger( movingForward ? afterForward : afterBackward, event, wizard );
+		this._trigger( afterSelect, event, this.wizard );
+		this._trigger( uiHash.movingForward ? afterForward : afterBackward, event, this.wizard );
 	},
 
 	_step: function( step, branch, index, relative ) {
@@ -351,6 +325,49 @@ $.widget( namespace.replace( "-", "." ), {
 		}
 
 		return $step;
+	},
+
+	_uiHash: function( stepIndex ) {
+		if ( this.isValidStepIndex( stepIndex ) ) {
+			var $step = this.elements.steps.eq( stepIndex ),
+				$branch = $step.closest( selector.branch );
+
+			return {
+				step: $step,
+				stepIndex: stepIndex,
+				branch: $branch,
+				branchLabel: $branch.attr( id ),
+				movingForward: stepIndex > this.wizard.stepIndex
+			};
+		}
+
+		return null;
+	},
+
+	_updateActivated: function( uiHash ) {
+		if ( uiHash.movingForward ) {
+			this.wizard.stepsActivated.push( uiHash.stepIndex );
+
+			if ( $.inArray( uiHash.branchLabel, this.wizard.branchesActivated ) < 0 ) {
+				this.wizard.branchesActivated.push( uiHash.branchLabel );
+			}
+		} else {
+			var spliceIndex = $.inArray( uiHash.stepIndex, this.wizard.stepsActivated ) + 1;
+
+			// Don't remove the initial step
+			if ( spliceIndex > 0 ) {
+				this.wizard.stepsActivated.splice( spliceIndex );
+			}
+
+			if ( uiHash.branchLabel !== this.wizard.branchLabel ) {
+				var branchIndex = $.inArray( uiHash.branchLabel, this.wizard.branchesActivated );
+
+				// Don't remove the default branch
+				if ( branchIndex > 0 ) {
+					this.wizard.branchesActivated.splice( branchIndex, 1 );
+				}
+			}
+		}
 	},
 
 	backward: function( howMany ) {
