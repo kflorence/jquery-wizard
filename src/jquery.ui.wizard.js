@@ -65,7 +65,7 @@ $.widget( namespace.replace( "-", "." ), {
 		backward: ".backward",
 		branches: ".branch",
 		defaultAction: function( $step ) {
-			return this.index( $step.nextAll( selector.step ) );
+			return this.stepIndex( $step.nextAll( selector.step ) );
 		},
 		enableSubmit: false,
 		forward: ".forward",
@@ -183,7 +183,7 @@ $.widget( namespace.replace( "-", "." ), {
 			// TODO: add support for asychronous actions.
 			if ( ( response = this._action( stepIndex ) ) === false
 				// Invalid responses will return a null index
-				|| ( stepIndex = this._index( response ) ) === null ) {
+				|| ( stepIndex = this._stepIndex( response ) ) === null ) {
 				break;
 			}
 
@@ -239,44 +239,11 @@ $.widget( namespace.replace( "-", "." ), {
 		return $found;
 	},
 
-	_index: function( step, branch ) {
-		var $step, stepIndex;
-
-		// Most common use case is selecting a step by index
-		if ( typeof step === number ) {
-			stepIndex = this.index( step, branch, true );
-
-		// Otherwise, we could be selecting a step or branch by ID, DOM
-		// element or jQuery object. In this case, the 'branch' argument
-		// could become a step index.
-		} else if ( step != null ) {
-			$step = this._find( step, this.elements.steps.add( this.elements.branches ) );
-
-			if ( $step && $step.length ) {
-				if ( $step.hasClass( className.branch ) ) {
-					$step = this.steps( $step ).eq( typeof branch === number ? branch : 0 );
-				}
-
-				stepIndex = this.index( $step );
-			}
-		}
-
-		if ( this.isValidStepIndex( stepIndex ) ) {
-			return stepIndex;
-
-		} else {
-			throw new Error(
-				'Invalid step index: "' + stepIndex + '"; ' +
-				'step="' + step + '", branch="' + branch + '"'
-			);
-		}
-	},
-
 	_select: function( stepIndex ) {
 		var o = this.options,
 			uiHash = this._uiHash( stepIndex ),
 			currentStepIndex = this.wizard.stepIndex,
-			lastStepIndex = this.index( this.steps( uiHash.branch ).filter( ":last" ) ),
+			lastStepIndex = this.stepIndex( this.steps( uiHash.branch ).filter( ":last" ) ),
 			// FIXME: events aren't passed in here, but they should be
 			event = null;
 
@@ -361,6 +328,39 @@ $.widget( namespace.replace( "-", "." ), {
 		}
 
 		return $step;
+	},
+
+	_stepIndex: function( step, branch ) {
+		var $step, stepIndex;
+
+		// Most common use case is selecting a step by index
+		if ( typeof step === number ) {
+			stepIndex = this.stepIndex( step, branch, true );
+
+		// Otherwise, we could be selecting a step or branch by ID, DOM
+		// element or jQuery object. In this case, the 'branch' argument
+		// could become a step index.
+		} else if ( step != null ) {
+			$step = this._find( step, this.elements.steps.add( this.elements.branches ) );
+
+			if ( $step && $step.length ) {
+				if ( $step.hasClass( className.branch ) ) {
+					$step = this.steps( $step ).eq( typeof branch === number ? branch : 0 );
+				}
+
+				stepIndex = this.stepIndex( $step );
+			}
+		}
+
+		if ( this.isValidStepIndex( stepIndex ) ) {
+			return stepIndex;
+
+		} else {
+			throw new Error(
+				'Invalid step index: "' + stepIndex + '"; ' +
+				'step="' + step + '", branch="' + branch + '"'
+			);
+		}
 	},
 
 	_uiHash: function( stepIndex ) {
@@ -460,14 +460,8 @@ $.widget( namespace.replace( "-", "." ), {
 		this.select( this._action() );
 	},
 
-	index: function( step, branch, relative ) {
-		return arguments.length ?
-			this._step( step, branch, true, relative ) :
-			this.wizard.stepIndex;
-	},
-
 	isValidStep: function( step ) {
-		return this.isValidStepIndex( this.index( step ) );
+		return this.isValidStepIndex( this.stepIndex( step ) );
 	},
 
 	isValidStepIndex: function( stepIndex ) {
@@ -481,13 +475,19 @@ $.widget( namespace.replace( "-", "." ), {
 	},
 
 	select: function( step, branch ) {
-		this._select( this._index( step, branch ) );
+		this._select( this._stepIndex( step, branch ) );
 	},
 
 	step: function( step, branch ) {
 		return arguments.length ?
 			this._step( step, branch ) :
 			this.wizard.$step;
+	},
+
+	stepIndex: function( step, branch, relative ) {
+		return arguments.length ?
+			this._step( step, branch, true, relative ) :
+			this.wizard.stepIndex;
 	},
 
 	stepCount: function() {
