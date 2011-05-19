@@ -417,7 +417,6 @@ $.widget( namespace.replace( "-", "." ), {
 	},
 
 	select: function( step, branch ) {
-		console.log( "select", step, branch );
 		this._select( this.state( step, branch ) );
 	},
 
