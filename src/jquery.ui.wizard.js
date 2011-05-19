@@ -97,7 +97,7 @@ $.widget( namespace.replace( "-", "." ), {
 	_action: function( step ) {
 		var $step = arguments.length ? this.step( step ) : this.wizard.step;
 
-		if ( $step ) {
+		if ( $step && $step.length ) {
 			var o = this.options,
 				action = $step.attr( o.actionAttribute ),
 				func = action ? o.actions[ action ] : o.defaultAction,
@@ -107,7 +107,8 @@ $.widget( namespace.replace( "-", "." ), {
 
 		} else {
 			throw new Error(
-				'Action failed on step: "' + step + '"'
+				'Action failed on step: "' +
+				( step ? step : $step.length ? $step.selector : $step ) + '"'
 			);
 		}
 	},
