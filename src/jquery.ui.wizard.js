@@ -13,6 +13,7 @@
 var count = 0,
 	selector = {},
 	className = {},
+	aps = Array.prototype.slice,
 
 	// Re-use strings for better minification
 	id = "id",
@@ -42,8 +43,6 @@ $.each( "branch form header step wrapper".split( " " ), function() {
 
 $.widget( namespace.replace( "-", "." ), {
 	options: {
-		actions: {},
-		actionAttribute: "data-action",
 		animations: {
 			show: {
 				options: {
@@ -64,10 +63,6 @@ $.widget( namespace.replace( "-", "." ), {
 		},
 		backward: ".backward",
 		branches: ".branch",
-		defaultAction: function( $step ) {
-			// Returns the index of the next step in the current branch
-			return this.stepIndex( $step.nextAll( selector.step ) );
-		},
 		enableSubmit: false,
 		forward: ".forward",
 		fastForward: true,
@@ -82,6 +77,14 @@ $.widget( namespace.replace( "-", "." ), {
 		},
 		steps: ".step",
 		submit: ":submit",
+		transitionAttribute: "data-transition",
+		transitionDefault: function() {
+			return this.stepIndex( this.wizard.step.nextAll( selector.step ) );
+		},
+		transitionError: function( error, step ) {
+			throw error + '; step="' + step + '"';
+		},
+		transitions: {},
 		unidirectional: false,
 
 		/* events */
@@ -92,25 +95,6 @@ $.widget( namespace.replace( "-", "." ), {
 		beforeForward: null,
 		beforeSelect: null,
 		beforeSubmit: null
-	},
-
-	_action: function( step ) {
-		var $step = arguments.length ? this.step( step ) : this.wizard.step;
-
-		if ( $step && $step.length ) {
-			var o = this.options,
-				action = $step.attr( o.actionAttribute ),
-				func = action ? o.actions[ action ] : o.defaultAction,
-				response = $.isFunction( func ) ? func.call( this, $step ) : action;
-
-			return response;
-
-		} else {
-			throw new Error(
-				'Action failed on step: "' +
-				( step ? step : $step.length ? $step.selector : $step ) + '"'
-			);
-		}
 	},
 
 	_create: function() {
@@ -176,40 +160,51 @@ $.widget( namespace.replace( "-", "." ), {
 		self.select( o.initialStep );
 	},
 
+	// FIXME i'm broken
 	_fastForward: function( fromIndex, toIndex ) {
-		var response,
-			steps = [],
-			stepIndex = fromIndex;
+		var self = this,
+			steps = [];
 
-		// Assume we won't overstep toIndex on the way there
-		while( stepIndex < toIndex ) {
-			// TODO: add support for asychronous actions.
-			if ( ( response = this._action( stepIndex ) ) === false
-				// Invalid responses will return a null index
-				|| ( stepIndex = this.stepIndex( response ) ) === null ) {
-				break;
+		function next( stepIndex ) {
+			console.log(stepIndex);
+			// Assume we won't overstep toIndex on the way there
+			if ( stepIndex < toIndex ) {
+				self.transition(function( step, branch ) {
+					// Invalid responses will return null
+					if ( ( stepIndex = self.stepIndex( step, branch ) ) !== null ) {
+						steps.push( stepIndex );
+						next( stepIndex );
+
+					} else {
+						finish( step, branch );
+					}
+				});
+
+			} else {
+				finish();
 			}
-
-			steps.push( stepIndex );
 		}
 
-		if ( stepIndex === toIndex ) {
-			var i = 0,
-				l = steps.length;
+		function finish( step, branch ) {
+			if ( stepIndex === toIndex ) {
+				var i = 0,
+					l = steps.length;
 
-			for ( ; i < l; i++ ) {
-				this._updateActivated( this.state( steps[ i ] ) );
+				for ( ; i < l; i++ ) {
+					self._updateActivated( self.state( steps[ i ] ) );
+				}
+
+			} else {
+				throw new Error(
+					'FastForward failed on step: "' + step + '"; ' +
+					'stepIndex="' + stepIndex + '", ' +
+					'fromIndex="' + fromIndex + '", ' +
+					'toIndex="' + toIndex + '"'
+				);
 			}
-
-		// For whatever reason, we couldn't reach toIndex
-		} else {
-			throw new Error(
-				'FastForward failed on action: "' + response + '"; ' +
-				'stepIndex="' + stepIndex + '", ' +
-				'fromIndex="' + fromIndex + '", ' +
-				'toIndex="' + toIndex + '"'
-			);
 		}
+
+		next( fromIndex );
 	},
 
 	_find: function( needle, haystack ) {
@@ -242,6 +237,10 @@ $.widget( namespace.replace( "-", "." ), {
 		}
 
 		return $found;
+	},
+
+	_identifyStep: function( step, $step ) {
+		return ( step ? step : $step.length ? $step.selector : $step );
 	},
 
 	_select: function( state ) {
@@ -286,7 +285,7 @@ $.widget( namespace.replace( "-", "." ), {
 			this.elements.backward.removeAttr( disabled );
 		}
 
-		if ( ( state.stepIndex === lastStepIndex && !state.step.attr( o.actionAttribute ) )
+		if ( ( state.stepIndex === lastStepIndex && !state.step.attr( o.transitionAttribute ) )
 			|| state.step.hasClass( o.stepClasses.stop ) ) {
 			this.elements.forward.attr( disabled, true );
 
@@ -400,7 +399,7 @@ $.widget( namespace.replace( "-", "." ), {
 
 	// TODO: implement howMany
 	forward: function( howMany ) {
-		this._select( this.state( this._action() ) );
+		this.transition();
 	},
 
 	isValidStep: function( step ) {
@@ -471,9 +470,8 @@ $.widget( namespace.replace( "-", "." ), {
 			}
 		} else {
 			throw new Error(
-				'Could not find step: ' +
-				'step="' + step + '", ' +
-				'branch="' + branch + '"'
+				'Could not find step: "' + this._identifyStep( step, $step ) +
+				'", branch="' + branch + '"'
 			);
 		}
 
@@ -534,6 +532,55 @@ $.widget( namespace.replace( "-", "." ), {
 
 	stepsRemaining: function() {
 		return this.wizard.stepsRemaining;
+	},
+
+	transition: function( action, step ) {
+		var state,
+			self = this,
+			o = self.options;
+
+		// Allow arguments in either order
+		if ( !$.isFunction( action ) ) {
+			step = action;
+			action = $.isFunction( step ) ? step :
+				// Default action: attempt to select the given step/branch
+				function( step, branch ) {
+					self.select( step, branch );
+				};
+		}
+
+		var $step = step === undefined ?
+			// Default to current step
+			self.wizard.step : self.step( step );
+
+		if ( $.isFunction( action ) && $step ) {
+			var transition = $step.attr( o.transitionAttribute ),
+				transitionFunc = transition ? o.transitions[ transition ] : o.transitionDefault;
+
+			if ( $.isFunction( transitionFunc ) ) {
+				try {
+					state = transitionFunc.call( self, function() {
+						return action.apply( self, aps.call( arguments ) );
+					});
+				} catch ( e ) {
+					if ( $.isFunction( o.transitionError ) ) {
+						o.transitionError.call( self, e, self._identifyStep( step, $step ) );
+					}
+				}
+
+			} else {
+				state = transition;
+			}
+
+			// A state of 'undefined' or 'false' will halt immediate action
+			// waiting instead for the transition function to handle the call
+			if ( state !== undefined && state !== false ) {
+				action.apply( self, $.isArray( state ) ? state : [ state ] );
+			}
+		}
+
+		// The immediate response
+		return state;
 	}
 });
 
