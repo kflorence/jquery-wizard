@@ -64,10 +64,19 @@ $.widget( namespace.replace( "-", "." ), {
 		backward: ".backward",
 		branches: ".branch",
 		enableSubmit: false,
+		error: function( e ) {
+			throw e;
+		},
 		forward: ".forward",
 		fastForward: true,
 		header: ":header:first",
 		initialStep: 0,
+		state: "data-state",
+		states: {
+			default: function( step ) {
+				return this.stepIndex( step.nextAll( selector.step ) );
+			}
+		},
 		stepClasses: {
 			current: "current",
 			exclude: "exclude",
@@ -77,14 +86,6 @@ $.widget( namespace.replace( "-", "." ), {
 		},
 		steps: ".step",
 		submit: ":submit",
-		transitionAttribute: "data-transition",
-		transitionDefault: function() {
-			return this.stepIndex( this.wizard.step.nextAll( selector.step ) );
-		},
-		transitionError: function( error, step ) {
-			throw error + '; step="' + step + '"';
-		},
-		transitions: {},
 		unidirectional: false,
 
 		/* events */
@@ -160,51 +161,71 @@ $.widget( namespace.replace( "-", "." ), {
 		self.select( o.initialStep );
 	},
 
-	// FIXME i'm broken
-	_fastForward: function( fromIndex, toIndex ) {
-		var self = this,
-			steps = [];
+	_error: function( message, step ) {
+		throw message + ( step ? ', on step: "' + step + '"' : '' );
+	},
 
-		function next( stepIndex ) {
-			console.log(stepIndex);
-			// Assume we won't overstep toIndex on the way there
-			if ( stepIndex < toIndex ) {
-				self.transition(function( step, branch ) {
-					// Invalid responses will return null
-					if ( ( stepIndex = self.stepIndex( step, branch ) ) !== null ) {
-						steps.push( stepIndex );
-						next( stepIndex );
+	_fastForward: function( toIndex, determinate, callback ) {
+
+		// Allow omission of determinate argument
+		if ( $.isFunction( determinate ) ) {
+			callback = determinate;
+			determinate = false;
+		}
+
+		var stepIndex,
+			self = this,
+
+			// If determinate, toIndex determines how many steps to take
+			// Otherwise, move forward until we reach or pass 'toIndex'
+			index = determinate ? 0 : self.wizard.stepIndex,
+			stepsTaken = [];
+
+		if ( !$.isFunction( callback ) ) {
+
+			// By default, fastForward will select the step returned on
+			// successful completion
+			callback = function( stepIndex ) {
+				self._select( self.state( stepIndex ) );
+			};
+		}
+
+		function forward() {
+			if ( index < toIndex ) {
+				self.transition( stepIndex, function( step, branch ) {
+					if ( ( stepIndex = self.stepIndex( step, branch ) ) !== undefined
+						&& $.inArray( stepIndex, stepsTaken ) < 0 ) {
+						index = determinate ? ++index : stepIndex;
+						stepsTaken.push( stepIndex );
+						forward();
 
 					} else {
-						finish( step, branch );
+						complete( "Invalid step or recursion detected", step );
 					}
 				});
 
 			} else {
-				finish();
+				complete();
 			}
 		}
 
-		function finish( step, branch ) {
-			if ( stepIndex === toIndex ) {
+		function complete( error, step ) {
+			if ( index === toIndex ) {
 				var i = 0,
-					l = steps.length;
+					l = stepsTaken.length;
 
 				for ( ; i < l; i++ ) {
-					self._updateActivated( self.state( steps[ i ] ) );
+					self._updateActivated( self.state( stepsTaken[ i ] ) );
 				}
 
+				callback.call( self, stepIndex );
+
 			} else {
-				throw new Error(
-					'FastForward failed on step: "' + step + '"; ' +
-					'stepIndex="' + stepIndex + '", ' +
-					'fromIndex="' + fromIndex + '", ' +
-					'toIndex="' + toIndex + '"'
-				);
+				self._error( "FastForward failed: " + error, step );
 			}
 		}
 
-		next( fromIndex );
+		forward();
 	},
 
 	_find: function( needle, haystack ) {
@@ -239,10 +260,6 @@ $.widget( namespace.replace( "-", "." ), {
 		return $found;
 	},
 
-	_identifyStep: function( step, $step ) {
-		return ( step ? step : $step.length ? $step.selector : $step );
-	},
-
 	_select: function( state ) {
 		var o = this.options,
 			stepIndex = this.wizard.stepIndex,
@@ -250,20 +267,16 @@ $.widget( namespace.replace( "-", "." ), {
 			// FIXME: events aren't passed in here, but they should be
 			event = null;
 
-		if ( typeof state.stepIndex !== number || state.stepIndex === stepIndex
-			|| !this._trigger( beforeSelect, event, state )
-			|| state.movingForward && !this._trigger( beforeForward, event, state )
-			|| !state.movingForward && !this._trigger( beforeBackward, event, state ) ) {
+		if ( typeof state.stepIndex !== number || state.stepIndex === stepIndex ||
+			!this._trigger( beforeSelect, event, state ) || stepIndex !== -1 && (
+				state.movingForward && !this._trigger( beforeForward, event, state ) ||
+				!state.movingForward && !this._trigger( beforeBackward, event, state )
+			) ) {
+
 			return;
 		}
 
-		// Use fastForwarding if enabled and going more than one step forward
-		if ( state.movingForward && o.fastForward && ( state.stepIndex - stepIndex ) > 1 ) {
-			this._fastForward( stepIndex, state.stepIndex );
-
-		} else {
-			this._updateActivated( state );
-		}
+		this._updateActivated( state );
 
 		if ( this.wizard.step ) {
 			this.wizard.step.removeClass( o.stepClasses.current )
@@ -277,16 +290,16 @@ $.widget( namespace.replace( "-", "." ), {
 				// Fixes #3583 - http://bugs.jquery.com/ticket/3583
 				$.extend( {}, o.animations.show.options ) );
 
-		if ( state.stepIndex === 0 || o.unidirectional
-			|| state.step.hasClass( o.stepClasses.unidirectional ) ) {
+		if ( state.stepIndex === 0 || o.unidirectional ||
+			state.step.hasClass( o.stepClasses.unidirectional ) ) {
 			this.elements.backward.attr( disabled, true );
 
 		} else {
 			this.elements.backward.removeAttr( disabled );
 		}
 
-		if ( ( state.stepIndex === lastStepIndex && !state.step.attr( o.transitionAttribute ) )
-			|| state.step.hasClass( o.stepClasses.stop ) ) {
+		if ( ( state.stepIndex === lastStepIndex && !state.step.attr( o.state ) ) ||
+			state.step.hasClass( o.stepClasses.stop ) ) {
 			this.elements.forward.attr( disabled, true );
 
 		} else {
@@ -313,15 +326,23 @@ $.widget( namespace.replace( "-", "." ), {
 		});
 
 		this._trigger( afterSelect, event, state );
-		this._trigger( state.movingForward ? afterForward : afterBackward, event, state );
+
+		if ( stepIndex !== -1 ) {
+			this._trigger( state.movingForward ? afterForward : afterBackward, event, state );
+		}
 	},
 
 	_updateActivated: function( state ) {
 		var wizard = this.wizard;
 
 		if ( state.movingForward ) {
-			wizard.stepsActivated.push( state.stepIndex );
 
+			// No duplicate steps
+			if ( $.inArray( state.stepIndex, wizard.stepsActivated ) < 0 ) {
+				wizard.stepsActivated.push( state.stepIndex );
+			}
+
+			// No duplicate branches
 			if ( $.inArray( state.branchLabel, wizard.branchesActivated ) < 0 ) {
 				wizard.branchesActivated.push( state.branchLabel );
 			}
@@ -346,6 +367,12 @@ $.widget( namespace.replace( "-", "." ), {
 	},
 
 	backward: function( howMany ) {
+
+		// Can't go backward on first step
+		if ( this.wizard.stepIndex === 0 ) {
+			return;
+		}
+
 		var stepsActivated = this.wizard.stepsActivated,
 			stepsActivatedIndex = Math.max( 0,
 				( stepsActivated.length - 1 ) -
@@ -397,9 +424,24 @@ $.widget( namespace.replace( "-", "." ), {
 		return this.elements.form;
 	},
 
-	// TODO: implement howMany
 	forward: function( howMany ) {
-		this.transition();
+
+		// Already on the last step
+		if ( this.wizard.stepIndex === ( this.wizard.stepCount - 1 ) ) {
+			return;
+		}
+
+		// TODO: normalize to max index
+		howMany = typeof howMany === number && howMany > 0 ? howMany : 1;
+
+		if ( howMany > 1 ) {
+			this._fastForward( howMany, true );
+
+		} else {
+			this.transition(function( stepIndex ) {
+				this._select( this.state( stepIndex ) );
+			});
+		}
 	},
 
 	isValidStep: function( step ) {
@@ -417,10 +459,21 @@ $.widget( namespace.replace( "-", "." ), {
 	},
 
 	select: function( step, branch ) {
-		this._select( this.state( step, branch ) );
+		var state = this.state( step, branch );
+
+		// Do we need to fastForward?
+		if ( state.movingForward
+			&& this.options.fastForward
+			&& ( state.stepIndex - this.wizard.stepIndex ) > 1 ) {
+			this._fastForward( state.stepIndex );
+
+		} else {
+			this._select( state );
+		}
 	},
 
 	state: function( step, branch ) {
+
 		// With no arguments, return the current state
 		if ( !arguments.length ) {
 			return this.wizard;
@@ -445,6 +498,7 @@ $.widget( namespace.replace( "-", "." ), {
 	},
 
 	step: function( step, branch ) {
+
 		// With no arguments, return current step
 		if ( !arguments.length ) {
 			return this.wizard.step;
@@ -468,11 +522,9 @@ $.widget( namespace.replace( "-", "." ), {
 				// If a branch is found, the arguments are essentially flip-flopped
 				$step = this._find( branch || 0, this.steps( $step ) );
 			}
+
 		} else {
-			throw new Error(
-				'Could not find step: "' + this._identifyStep( step, $step ) +
-				'", branch="' + branch + '"'
-			);
+			this._error( "Could not find step" );
 		}
 
 		return $step;
@@ -534,49 +586,46 @@ $.widget( namespace.replace( "-", "." ), {
 		return this.wizard.stepsRemaining;
 	},
 
-	transition: function( action, step ) {
-		var state,
-			self = this,
-			o = self.options;
+	transition: function( step, action ) {
 
-		// Allow arguments in either order
-		if ( !$.isFunction( action ) ) {
-			step = action;
-			action = $.isFunction( step ) ? step :
-				// Default action: attempt to select the given step/branch
-				function( step, branch ) {
-					self.select( step, branch );
-				};
+		// Allow omission of step argument
+		if ( $.isFunction( step ) ) {
+			action = step;
+			step = undefined;
 		}
 
-		var $step = step === undefined ?
-			// Default to current step
-			self.wizard.step : self.step( step );
+		var self = this,
+			o = self.options;
+			$step = step === undefined ? self.wizard.step : self.step( step );
 
-		if ( $.isFunction( action ) && $step ) {
-			var transition = $step.attr( o.transitionAttribute ),
-				transitionFunc = transition ? o.transitions[ transition ] : o.transitionDefault;
+		if ( !$.isFunction( action ) || !$step || !$step.length ) {
+			return;
+		}
 
-			if ( $.isFunction( transitionFunc ) ) {
-				try {
-					state = transitionFunc.call( self, function() {
-						return action.apply( self, aps.call( arguments ) );
-					});
-				} catch ( e ) {
-					if ( $.isFunction( o.transitionError ) ) {
-						o.transitionError.call( self, e, self._identifyStep( step, $step ) );
-					}
+		var state = $step.attr( o.state ),
+			transition = state ? o.states[ state ] : o.states[ "default" ];
+
+		if ( $.isFunction( transition ) ) {
+			try {
+				state = transition.call( self, $step, function() {
+
+					// Ensures the action function is called in the right context
+					return action.apply( self, aps.call( arguments ) );
+				});
+
+			} catch ( error ) {
+				if ( $.isFunction( o.error ) ) {
+					o.error.call( self, error );
 				}
-
-			} else {
-				state = transition;
 			}
+		}
 
-			// A state of 'undefined' or 'false' will halt immediate action
-			// waiting instead for the transition function to handle the call
-			if ( state !== undefined && state !== false ) {
-				action.apply( self, $.isArray( state ) ? state : [ state ] );
-			}
+		// A state of 'undefined' or 'false' will halt immediate action
+		// waiting instead for the transition function to handle the call
+		if ( state !== undefined && state !== false ) {
+
+			// State can be array like [ step, branch ] or vice versa
+			action.apply( self, $.isArray( state ) ? state : [ state ] );
 		}
 
 		// The immediate response
