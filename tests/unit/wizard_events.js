@@ -19,7 +19,7 @@ test( "backward", function() {
 		.bind( "wizardbeforebackward", callback )
 		.bind( "wizardafterbackward", callback )
 		.wizard({
-			beforeBackward: function( event, ui ) {
+			beforeBackward: function( event, state ) {
 				if ( cancel ) {
 					return cancel = false;
 				}
@@ -42,7 +42,7 @@ test( "forward", function() {
 		.bind( "wizardbeforeforward", callback )
 		.bind( "wizardafterforward", callback )
 		.wizard({
-			beforeForward: function( event, ui ) {
+			beforeForward: function( event, state ) {
 				if ( cancel ) {
 					return cancel = false;
 				}
@@ -50,45 +50,10 @@ test( "forward", function() {
 		})
 		// This one is cancelled
 		.wizard( "forward" )
-		.wizard( "forward" )
 		// Go to the last step
 		.wizard( "select", $wizard.wizard( "stepCount" ) - 1 )
 		// Can't go forward on last step
 		.wizard( "forward" );
 });
 
-/*
-test( "beforeForward", function() {
-	expect( 4 );
-
-	var $wizard = $( "#wizard" );
-
-	$wizard
-		.bind( "wizardbeforeforward", callback )
-		.wizard({
-			beforeForward: function() {
-			console.log($wizard.wizard("index"));
-				return $wizard.wizard( "index" ) < 0;
-			}
-		})
-		.wizard( "select", $wizard.wizard( "stepCount" ) - 1 )
-		// Not called here because we are on the last step
-		.wizard( "forward" );
-});
-
-test( "afterForward", function() {
-	expect( 4 );
-
-	var $wizard = $( "#wizard" );
-
-	$wizard
-		.bind( "wizardafterforward", callback )
-		.wizard({
-			afterForward: callback
-		})
-		.wizard( "select", $wizard.wizard( "stepCount" ) - 1 )
-		// Not called here because we are on the last step
-		.wizard( "forward" );
-});
-*/
 })( jQuery );

@@ -32,16 +32,16 @@
 				<form id="form">
 
 					<!-- 8 steps, not including finish step -->
-					<div class="step" data-action="branch-1"></div>
+					<div class="step" data-state="branch-1"></div>
 
 					<div class="branch" id="branch-1">
 						<div class="step"></div>
-						<div class="step" data-action="nested-1"></div>
+						<div class="step" data-state="nested-1"></div>
 						<div class="step"></div>
 
 						<div class="branch" id="nested-1">
 							<div class="step"></div>
-							<div class="step" data-action="branch-2"></div>
+							<div class="step" data-state="branch-2"></div>
 						</div>
 
 						<!-- Unused -->
@@ -50,7 +50,7 @@
 
 					<div class="branch" id="branch-2">
 						<div class="step"></div>
-						<div class="step" data-action="finish"></div>
+						<div class="step" data-state="finish"></div>
 					</div>
 
 					<div class="step" id="finish">finish</div>

@@ -40,9 +40,9 @@
 
 				// Example 3: Basic branching wizard
 				$("#example-3").wizard({
-					transitions: {
-						color: function( action ) {
-							var branch = $("[name=color]:checked", this.wizard.step).val();
+					states: {
+						color: function( $step, action ) {
+							var branch = $step.find("[name=color]:checked").val();
 
 							if (!branch) {
 								alert("Please select a value to continue.");
@@ -123,20 +123,20 @@
 						<p>This is a branching wizard. You will see different steps depending on your answers.</p>
 					</div>
 
-					<div class="step" data-transition="color">
+					<div class="step" data-state="color">
 						<p>Which color do you like best?</p>
 						<label for="colorPink"><input type="radio" name="color" value="pink" id="colorPink" />Pink</label>
 						<label for="colorBlue"><input type="radio" name="color" value="blue" id="colorBlue" />Blue</label>
 					</div>
 
 					<div class="branch" id="pink">
-						<div class="step" data-transition="end">
+						<div class="step" data-state="end">
 							<p>This is the pink branch.</p>
 						</div>
 					</div>
 
 					<div class="branch" id="blue">
-						<div class="step" data-transition="end">
+						<div class="step" data-state="end">
 							<p>This is the blue branch.</p>
 						</div>
 					</div>
@@ -158,15 +158,15 @@
 				<h2>Nested Branches</h2>
 
 				<form name="example-3">
-					<div class="step" data-transition="e4-branch-1">
+					<div class="step" data-state="e4-branch-1">
 						<p>Start</p>
 					</div>
 
 					<div class="branch" id="e4-branch-1">
-						<div class="step" data-transition="e4-branch-2">Branch Step</div>
+						<div class="step" data-state="e4-branch-2">Branch Step</div>
 
 						<div class="branch" id="e4-branch-2">
-							<div class="step" data-transition="e4-finish">Nested Branch Step</div>
+							<div class="step" data-state="e4-finish">Nested Branch Step</div>
 						</div>
 					</div>
 
