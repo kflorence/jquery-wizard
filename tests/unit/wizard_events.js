@@ -11,49 +11,74 @@ var callback = function( e ) {
 module( "wizard: events" );
 
 test( "backward", function() {
-	expect( 3 );
-
-	var cancel = true;
+	expect( 2 );
 
 	$( "#wizard" )
 		.bind( "wizardbeforebackward", callback )
 		.bind( "wizardafterbackward", callback )
-		.wizard({
-			beforeBackward: function( event, state ) {
-				if ( cancel ) {
-					return cancel = false;
-				}
-			}
-		})
+		.wizard()
 		.wizard( "forward" )
-		// This one is cancelled
-		.wizard( "backward" )
 		.wizard( "backward" )
 		// Can't go back on first step
 		.wizard( "backward" );
 });
 
-test( "forward", function() {
-	expect( 3 );
+test( "cancel backward", function() {
+	expect( 0 );
 
-	var cancel = true, $wizard = $( "#wizard" );
+	$( "#wizard" )
+		.bind( "wizardafterbackward", callback )
+		.wizard({
+			beforeBackward: function() {
+				return false;
+			}
+		})
+		.wizard( "forward" )
+		.wizard( "backward" );
+});
+
+test( "forward", function() {
+	expect( 4 );
+
+	var $wizard = $( "#wizard" );
 
 	$wizard
 		.bind( "wizardbeforeforward", callback )
 		.bind( "wizardafterforward", callback )
-		.wizard({
-			beforeForward: function( event, state ) {
-				if ( cancel ) {
-					return cancel = false;
-				}
-			}
-		})
-		// This one is cancelled
+		.wizard()
 		.wizard( "forward" )
-		// Go to the last step
 		.wizard( "select", $wizard.wizard( "stepCount" ) - 1 )
 		// Can't go forward on last step
 		.wizard( "forward" );
+});
+
+test( "cancel forward", function() {
+	expect( 0 );
+
+	$( "#wizard" )
+		.bind( "wizardafterforward", callback )
+		.wizard({
+			beforeForward: function() {
+				return false;
+			}
+		})
+		.wizard( "forward" );
+});
+
+test( "select", function() {
+	expect( 10 );
+
+	$( "#wizard" )
+		.bind( "wizardbeforeselect", callback )
+		.bind( "wizardafterselect", callback )
+		.wizard()
+		.wizard( "forward" )
+		.wizard( "select", 3 )
+		.wizard( "select", -1 )
+		.wizard( "select", 2, true )
+		.wizard( "select", null )
+		.wizard( "select", "asdf" )
+		.wizard( "backward" );
 });
 
 })( jQuery );
