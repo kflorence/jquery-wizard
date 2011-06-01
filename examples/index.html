@@ -22,19 +22,17 @@
 		<script type="text/javascript">
 			jQuery(function($) {
 				// Example 1: Basic wizard
-					$("#example-1").wizard({
-						stepsWrapper: "#wrapped"
-					});
+				$("#example-1").wizard({
+					stepsWrapper: "#wrapped", submit: ".submit"
+				});
 
 				// Example 2: Basic wizard with progress bar
 				$("#progressbar").progressbar();
 
 				$("#example-2").wizard({
-					afterSelect: function() {
-						var $this = $(this);
-						$("#progressbar").progressbar("value", $this.wizard("percentComplete"));
-						$("#location").text("(" + $this.wizard("stepsComplete")
-							+ "/" + $this.wizard("stepsPossible") + ")");
+					afterSelect: function( event, state ) {
+						$("#progressbar").progressbar("value", state.percentComplete);
+						$("#location").text("(" + state.stepsComplete + "/" + state.stepsPossible + ")");
 					}
 				});
 
@@ -74,7 +72,7 @@
 						<p>Now you're on step two. One step to go!</p>
 					</div>
 
-					<div class="step">
+					<div class="submit step">
 						<p>This is step three, the last step of the wizard. All done!</p>
 					</div>
 
@@ -82,6 +80,7 @@
 						<ul class="clearfix">
 							<li><button type="button" name="backward" class="backward">Backward</button></li>
 							<li><button type="button" name="forward" class="forward">Forward</button></li>
+							<li><button type="submit" name="process" class="submit">Submit</button></li>
 						</ul>
 					</div>
 				</form>
