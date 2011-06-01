@@ -4,33 +4,81 @@
 
 (function( $ ) {
 
+var callback = function( e ) {
+	ok( true, e.type + " triggered" );
+};
+
 module( "wizard: events" );
 
+test( "backward", function() {
+	expect( 2 );
+
+	$( "#wizard" )
+		.bind( "wizardbeforebackward", callback )
+		.bind( "wizardafterbackward", callback )
+		.wizard()
+		.wizard( "forward" )
+		.wizard( "backward" )
+		// Can't go back on first step
+		.wizard( "backward" );
+});
+
+test( "cancel backward", function() {
+	expect( 0 );
+
+	$( "#wizard" )
+		.bind( "wizardafterbackward", callback )
+		.wizard({
+			beforeBackward: function() {
+				return false;
+			}
+		})
+		.wizard( "forward" )
+		.wizard( "backward" );
+});
+
 test( "forward", function() {
-	expect( 1 );
+	expect( 4 );
 
-	var $wizard = $( "#wizard" ).wizard({
-		forward: function() {
-			ok( true, "forward event triggered" );
-		}
-	}).wizard( "forward" );
+	var $wizard = $( "#wizard" );
 
-	// Not called if forward invoked on last step
-	$wizard.wizard( "select", $wizard.wizard( "stepCount" ) - 1 )
+	$wizard
+		.bind( "wizardbeforeforward", callback )
+		.bind( "wizardafterforward", callback )
+		.wizard()
+		.wizard( "forward" )
+		.wizard( "select", $wizard.wizard( "stepCount" ) - 1 )
+		// Can't go forward on last step
 		.wizard( "forward" );
 });
 
-test( "backward", function() {
-	expect( 1 );
+test( "cancel forward", function() {
+	expect( 0 );
 
-	var $wizard = $( "#wizard" ).wizard({
-		backward: function() {
-			ok( true, "backward event triggered" );
-		}
-	}).wizard( "forward" ).wizard( "backward" );
+	$( "#wizard" )
+		.bind( "wizardafterforward", callback )
+		.wizard({
+			beforeForward: function() {
+				return false;
+			}
+		})
+		.wizard( "forward" );
+});
 
-	// Not called if backward invoked on first step
-	$wizard.wizard( "select", 0 ).wizard( "backward" );
+test( "select", function() {
+	expect( 10 );
+
+	$( "#wizard" )
+		.bind( "wizardbeforeselect", callback )
+		.bind( "wizardafterselect", callback )
+		.wizard()
+		.wizard( "forward" )
+		.wizard( "select", 3 )
+		.wizard( "select", -1 )
+		.wizard( "select", 2, true )
+		.wizard( "select", null )
+		.wizard( "select", "asdf" )
+		.wizard( "backward" );
 });
 
 })( jQuery );

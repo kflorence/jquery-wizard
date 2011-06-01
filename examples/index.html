@@ -8,45 +8,42 @@
 		<link rel="stylesheet" type="text/css" href="../src/jquery.ui.wizard.css" />
 
 		<!-- Required scripts -->
-		<script language="javascript" type="text/javascript" src="../external/jquery/jquery-1.4.min.js"></script>
-		<script language="javascript" type="text/javascript" src="../external/jquery/ui/jquery-ui-1.8.12.min.js"></script>
+		<script type="text/javascript" src="../external/jquery/jquery-1.4.min.js"></script>
+		<script type="text/javascript" src="../external/jquery/ui/jquery-ui-1.8.12.min.js"></script>
 
 		<!-- Optional scripts -->
-		<script language="javascript" type="text/javascript" src="../external/jquery/form/jquery.form.js"></script>
-		<script language="javascript" type="text/javascript" src="../external/jquery/validate/jquery.validate.js"></script>
+		<script type="text/javascript" src="../external/jquery/form/jquery.form.js"></script>
+		<script type="text/javascript" src="../external/jquery/validate/jquery.validate.js"></script>
 
 		<!-- The plugin -->
-		<script language="javascript" type="text/javascript" src="../src/jquery.ui.wizard.js"></script>
+		<script type="text/javascript" src="../src/jquery.ui.wizard.js"></script>
 
 		<!-- Demo -->
-		<script language="javascript" type="text/javascript">
+		<script type="text/javascript">
 			jQuery(function($) {
 				// Example 1: Basic wizard
-					$("#example-1").wizard({
-						stepsWrapper: "#wrapped"
-					});
+				$("#example-1").wizard({
+					stepsWrapper: "#wrapped", submit: ".submit"
+				});
 
 				// Example 2: Basic wizard with progress bar
 				$("#progressbar").progressbar();
 
 				$("#example-2").wizard({
-					afterSelect: function() {
-						var $this = $(this);
-						$("#progressbar").progressbar("value", $this.wizard("percentComplete"));
-						$("#location").text("(" + $this.wizard("stepsComplete")
-							+ "/" + $this.wizard("stepsPossible") + ")");
+					afterSelect: function( event, state ) {
+						$("#progressbar").progressbar("value", state.percentComplete);
+						$("#location").text("(" + state.stepsComplete + "/" + state.stepsPossible + ")");
 					}
 				});
 
 				// Example 3: Basic branching wizard
 				$("#example-3").wizard({
-					actions: {
-						color: function($step) {
-							var branch = $("[name=color]:checked", $step).val();
+					states: {
+						color: function( $step, action ) {
+							var branch = $step.find("[name=color]:checked").val();
 
 							if (!branch) {
 								alert("Please select a value to continue.");
-								return false;
 							}
 
 							return branch;
@@ -75,7 +72,7 @@
 						<p>Now you're on step two. One step to go!</p>
 					</div>
 
-					<div class="step">
+					<div class="submit step">
 						<p>This is step three, the last step of the wizard. All done!</p>
 					</div>
 
@@ -83,6 +80,7 @@
 						<ul class="clearfix">
 							<li><button type="button" name="backward" class="backward">Backward</button></li>
 							<li><button type="button" name="forward" class="forward">Forward</button></li>
+							<li><button type="submit" name="process" class="submit">Submit</button></li>
 						</ul>
 					</div>
 				</form>
@@ -124,20 +122,20 @@
 						<p>This is a branching wizard. You will see different steps depending on your answers.</p>
 					</div>
 
-					<div class="step" data-action="color">
+					<div class="step" data-state="color">
 						<p>Which color do you like best?</p>
 						<label for="colorPink"><input type="radio" name="color" value="pink" id="colorPink" />Pink</label>
 						<label for="colorBlue"><input type="radio" name="color" value="blue" id="colorBlue" />Blue</label>
 					</div>
 
 					<div class="branch" id="pink">
-						<div class="step" data-action="end">
+						<div class="step" data-state="end">
 							<p>This is the pink branch.</p>
 						</div>
 					</div>
 
 					<div class="branch" id="blue">
-						<div class="step" data-action="end">
+						<div class="step" data-state="end">
 							<p>This is the blue branch.</p>
 						</div>
 					</div>
@@ -159,15 +157,15 @@
 				<h2>Nested Branches</h2>
 
 				<form name="example-3">
-					<div class="step" data-action="e4-branch-1">
+					<div class="step" data-state="e4-branch-1">
 						<p>Start</p>
 					</div>
 
 					<div class="branch" id="e4-branch-1">
-						<div class="step" data-action="e4-branch-2">Branch Step</div>
+						<div class="step" data-state="e4-branch-2">Branch Step</div>
 
 						<div class="branch" id="e4-branch-2">
-							<div class="step" data-action="e4-finish">Nested Branch Step</div>
+							<div class="step" data-state="e4-finish">Nested Branch Step</div>
 						</div>
 					</div>
 

@@ -6,7 +6,6 @@
 
 		<script type="text/javascript" src="../external/jquery/jquery-1.4.min.js"></script>
 		<script type="text/javascript" src="../external/jquery/ui/jquery-ui-1.8.12.min.js"></script>
-
 		<script type="text/javascript" src="../src/jquery.ui.wizard.js"></script>
 
 		<script type="text/javascript" src="qunit/qunit.js"></script>
@@ -15,17 +14,6 @@
 		<script type="text/javascript" src="unit/wizard_events.js"></script>
 		<script type="text/javascript" src="unit/wizard_methods.js"></script>
 		<script type="text/javascript" src="unit/wizard_options.js"></script>
-
-		<script type="text/javascript">
-			jQuery(function( $ ) {
-					// Log to console
-					QUnit.log = function( test ) {
-							if ( typeof console !== "undefined" && console.log ) {
-									console.log( test.message + ":", test.result );
-							}
-					}
-			});
-		</script>
 	</head>
 	<body>
 		<h1 id="qunit-header">jQuery.ui.wizard Unit Tests</h1>
@@ -37,31 +25,28 @@
 		<div id="qunit-fixture">
 			<div id="invalid"></div>
 
-			<div id="wizard">
+			<!-- wizard containing form -->
+			<div id="wizard" class="wizard">
 				<h2>Heading</h2>
 
 				<form id="form">
 
 					<!-- 8 steps, not including finish step -->
-					<div class="step" data-action="branch-1"></div>
+					<div class="step" data-state="branch-1"></div>
 
 					<div class="branch" id="branch-1">
 						<div class="step"></div>
-						<div class="step" data-action="nested-1"></div>
-						<div class="step"></div>
+						<div class="step" data-state="nested-1"></div>
 
 						<div class="branch" id="nested-1">
 							<div class="step"></div>
-							<div class="step" data-action="branch-2"></div>
+							<div class="step" data-state="branch-2"></div>
 						</div>
-
-						<!-- Unused -->
-						<div class="branch" id="nested-2"></div>
 					</div>
 
 					<div class="branch" id="branch-2">
 						<div class="step"></div>
-						<div class="step" data-action="finish"></div>
+						<div class="step" data-state="finish"></div>
 					</div>
 
 					<div class="step" id="finish">finish</div>
@@ -69,9 +54,22 @@
 					<!-- Navigation -->
 					<button type="button" name="backward" class="backward"></button>
 					<button type="button" name="forward" class="forward"></button>
-					<button type="button" name="submit" class="submit"></button>
+					<button type="button" name="process" class="submit"></button>
 				</form>
 			</div>
+
+			<!-- form outside of wizard -->
+			<form id="form2">
+				<div id="wizard2" class="wizard">
+					<div class="step"></div>
+					<div class="step"></div>
+				</div>
+			</form>
+
+			<!-- form is wizard -->
+			<form id="wizard3" class="wizard">
+				<div class="step"></div>
+			</form>
 		</div>
 	</body>
 </html>
