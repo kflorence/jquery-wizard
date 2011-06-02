@@ -2,7 +2,11 @@
 
     $( "form" ).wizard( [ options ] );
 
-This plugin turns a standard HTML form into a wizard by breaking it into a series of well-defined steps. The purpose of these steps is to better group related inputs, preventing the user from becoming overwhelmed at the size or complexity of a form and helping them to better understand the structure of an unfamiliar form.
+This plugin turns a standard HTML form into a wizard by breaking it into a
+series of well-defined steps. The purpose of these steps is to better group
+related inputs, preventing the user from becoming overwhelmed at the size or
+complexity of a form and helping them to better understand the structure of
+an unfamiliar form.
 
 ### Structure
 
