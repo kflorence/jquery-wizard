@@ -81,12 +81,7 @@ $.widget( namespace.replace( "-", "." ), {
 		forward: ".forward",
 		header: ":header:first",
 		initialStep: 0,
-		state: "data-state",
-		states: {
-			default: function( step ) {
-				return this.stepIndex( step.nextAll( selector.step ) );
-			}
-		},
+		stateAttribute: "data-state",
 		stepClasses: {
 			current: "current",
 			exclude: "exclude",
@@ -96,6 +91,11 @@ $.widget( namespace.replace( "-", "." ), {
 		},
 		steps: ".step",
 		submit: ":submit",
+		transitions: {
+			default: function( step ) {
+				return this.stepIndex( step.nextAll( selector.step ) );
+			}
+		},
 		unidirectional: false,
 
 		/* events */
@@ -372,8 +372,8 @@ $.widget( namespace.replace( "-", "." ), {
 		var response,
 			o = self.options,
 			$step = self.step( step, branch ),
-			stateName = $step.attr( o.state ),
-			transitionFunc = stateName ? o.states[ stateName ] : o.states[ "default" ];
+			stateName = $step.attr( o.stateAttribute ),
+			transitionFunc = stateName ? o.transitions[ stateName ] : o.transitions[ "default" ];
 
 		if ( $.isFunction( transitionFunc ) ) {
 			response = transitionFunc.call( self, $step, function() {
@@ -432,7 +432,7 @@ $.widget( namespace.replace( "-", "." ), {
 			this.elements.backward.removeAttr( disabled );
 		}
 
-		if ( ( state.isLastStepInBranch && !state.step.attr( o.state ) ) ||
+		if ( ( state.isLastStepInBranch && !state.step.attr( o.stateAttribute ) ) ||
 			state.step.hasClass( o.stepClasses.stop ) ) {
 			this.elements.forward.attr( disabled, true );
 
