@@ -10,7 +10,7 @@ The basic stucture of the wizard revolves around steps and branches, the latter 
 
 h3. Navigation
 
-The wizard employs an asynchronous ("finite-state machine":http://en.wikipedia.org/wiki/Finite-state_machine) that determines how to navigate through itself. This is accomplished by defining states within the wizard, which are attached to steps, along with their corresponding actions, which are user-defined functions that should return the name of a state, the index of a step or the name of a branch. Steps without any state attached to them will perform the default action, which is to go to the next step in the current branch, by default.
+The wizard employs an asynchronous "finite-state machine":http://en.wikipedia.org/wiki/Finite-state_machine that determines how to navigate through itself. This is accomplished by defining states within the wizard, which are attached to steps, along with their corresponding actions, which are user-defined functions that should return the name of a state, the index of a step or the name of a branch. Steps without any state attached to them will perform the default action, which is to go to the next step in the current branch, by default.
 
 h2. Options
 
@@ -58,7 +58,7 @@ bc. options: {
 }
 
 * *animations* _Object_
-  Used to define custom transition animations on step changes. There are animations for both showing and hiding the step. The _options_ and _properties_ objects will be passed directly into jQuery's (".animate()":http://api.jquery.com/animate/) function.
+  Used to define custom transition animations on step changes. There are animations for both showing and hiding the step. The _options_ and _properties_ objects will be passed directly into jQuery's ".animate()":http://api.jquery.com/animate/ function.
 
 * *backward* _String_
   A selector string used to indicate which elements to bind the _backward_ method to. The method will be triggered on click.
@@ -127,10 +127,10 @@ h2. Integration
 
 This plugin has been developed to integrate with the following plugins:
 
-* ("jQuery Form":https://github.com/malsup/form)
-* ("jQuery Validation":https://github.com/jzaefferer/jquery-validation)
-* ("jQuery Autosave":https://github.com/nervetattoo/jquery-autosave)
-* ("jQuery Masked Input":https://github.com/digitalBush/jquery.maskedinput)
+* "jQuery Form":https://github.com/malsup/form
+* "jQuery Validation":https://github.com/jzaefferer/jquery-validation
+* "jQuery Autosave":https://github.com/nervetattoo/jquery-autosave
+* "jQuery Masked Input":https://github.com/digitalBush/jquery.maskedinput
 
 h2. License
 
