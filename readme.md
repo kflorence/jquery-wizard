@@ -12,6 +12,7 @@ The basic stucture of the wizard revolves around steps and branches, the latter 
 
 The wizard employs an asynchronous [finite-state machine](http://en.wikipedia.org/wiki/Finite-state_machine) that determines how to navigate through itself. This is accomplished by defining states within the wizard, which are attached to steps, along with their corresponding actions, which are user-defined functions that should return the name of a state, the index of a step or the name of a branch. Steps without any state attached to them will perform the default action, which is to go to the next step in the current branch, by default.
 
+
 ## Options
 
 Options is a map of key/value pairs that can be passed into the plugin as the first argument upon initialization. The default values are shown below:
@@ -121,6 +122,7 @@ By default the wizard will start on the first step, show and hide steps instantl
 *   **unidirectional** _Boolean_
     Whether or not this wizard should be unidirectional; that is allowing only forward movement.
 
+
 ## Events
 
     $( "form" )
@@ -131,25 +133,36 @@ By default the wizard will start on the first step, show and hide steps instantl
         // Bind at any other time
         .bind( "wizardeventhandler", function( event, state ) { ... });
 
-Event handlers may be passed in on intialization in the options object, or they can be bound to the wizard at any time using the format _wizardeventname_ (for example, _afterBackward_ becomes _wizardafterbackward_ -- note that it is lowercase). Every event is called with the same two arguments: _event_, a [jQuery.Event](http://api.jquery.com/category/events/event-object/) object representing the event that triggered the handler to be executed, and _state_, a map containing the current state of the wizard. Note that the _before_ handlers will be fed the state that the wizard will be updated to after successful selection.
+Event handlers may be passed in on intialization in the options object, or they can be bound to the wizard at any time using the format _wizardeventname_ (note that it must be in all lowercase).
 
-*   **afterBackward**
+*   **afterBackward** or _wizardafterbackward_
     Triggered after the wizard has completed going backwards.
 
-*   **afterForward**
+*   **afterForward** or _wizardafterforward_
     Triggered after the wizard has completed going forwards.
 
-*   **afterSelect**
+*   **afterSelect** or _wizardafterselect_
     Triggered after the wizard has completed selecting a new step (going forwards or backwards).
 
-*   **beforeBackward**
+*   **beforeBackward** or _wizardbeforebackward_
     Triggered before the wizard attempts to move backwards. Returning false inside of this method will prevent the move.
 
-*   **beforeForward**
+*   **beforeForward** or _wizardbeforeforward_
     Triggered before the wizard attempts to move forward. Returning false inside of this method will prevent the move.
 
-*   **beforeSelect**
+*   **beforeSelect** or _wizardbeforeselect_
     Triggered before the wizard attempts to move in any direction. Returning false inside of this method will prevent the move.
+
+### Arguments
+
+Every event is called with the same two arguments:
+
+*   **event** _Object_
+    The [jQuery.Event](http://api.jquery.com/category/events/event-object/) object.
+
+*   **state** _Object_
+    An object containing either the current state of the wizard (for _after_ events) or the state the wizard will be updating to (for _before_ events).
+
 
 ## Methods
 
@@ -157,16 +170,31 @@ Event handlers may be passed in on intialization in the options object, or they 
 
 ## Requirements
 
+*   **jQuery**
+    Versions 1.3.2 or higher.
+
+*   **jQuery UI**
+    Core and Widget, versions 1.7.3 or higher.
+
 ## Compabitility
+
+Testing is still underway.
 
 ## Integration
 
-This plugin has been developed to integrate with the following plugins:
+This plugin has been designed to integrate well with the following plugins:
 
-* [jQuery Form](https://github.com/malsup/form)
-* [jQuery Validation](https://github.com/jzaefferer/jquery-validation)
-* [jQuery Autosave](https://github.com/nervetattoo/jquery-autosave)
-* [jQuery Masked Input](https://github.com/digitalBush/jquery.maskedinput)
+*   [jQuery Form](https://github.com/malsup/form)
+    AJAX form submission capabilities.
+
+*   [jQuery Validation](https://github.com/jzaefferer/jquery-validation)
+    Form input validation which can prevent step changing or submission.
+
+*   [jQuery Autosave](https://github.com/nervetattoo/jquery-autosave)
+    Automatic form submission based on user-defined criteria.
+
+*   [jQuery Masked Input](https://github.com/digitalBush/jquery.maskedinput)
+    Ensures properly formatted form input data.
 
 ## License
 
