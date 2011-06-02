@@ -207,10 +207,10 @@ Every event is called with the same two arguments:
 
 ## Requirements
 
-*   **jQuery**  
+*   **[jQuery](http://jquery.com/)**  
     Versions 1.3.2 or higher.
 
-*   **jQuery UI**  
+*   **[jQuery UI](http://jqueryui.com/)**  
     Core and Widget, versions 1.7.3 or higher.
 
 ## Compabitility
@@ -221,16 +221,16 @@ Testing is still underway.
 
 This plugin has been designed to integrate well with the following plugins:
 
-*   [jQuery Form](https://github.com/malsup/form)  
+*   **[jQuery Form](https://github.com/malsup/form)**  
     AJAX form submission capabilities.
 
-*   [jQuery Validation](https://github.com/jzaefferer/jquery-validation)  
+*   **[jQuery Validation](https://github.com/jzaefferer/jquery-validation)**  
     Form input validation which can prevent step changing or submission.
 
-*   [jQuery Autosave](https://github.com/nervetattoo/jquery-autosave)  
+*   **[jQuery Autosave](https://github.com/nervetattoo/jquery-autosave)**  
     Automatic form submission based on user-defined criteria.
 
-*   [jQuery Masked Input](https://github.com/digitalBush/jquery.maskedinput)  
+*   **[jQuery Masked Input](https://github.com/digitalBush/jquery.maskedinput)**  
     Ensures properly formatted form input data.
 
 ## License
