@@ -239,33 +239,39 @@ $.widget( namespace.replace( "-", "." ), {
 		return wrap === false ? found : $( found );
 	},
 
-	_move: function( step, branch, callback, relative, fastForward ) {
-		var current = this._currentState;
+	_move: function( step, branch, relative, history, callback ) {
+		var self = this,
+			current = self._currentState;
 
-		if ( $.isFunction( branch ) ) {
-			fastForward = relative;
-			relative = callback;
-			callback = branch;
+		if ( typeof branch === bool ) {
+			callback = history;
+			history = relative;
+			relative = branch;
 			branch = undefined;
 		}
 
+		// Need an explicit 'false' to cancel history tracking
+		history = history === false ? false : true;
+
 		if ( relative === true ) {
-			if ( fastForward && step > 0 ) {
-				this._fastForward( step, relative, callback );
+			if ( step > 0 ) {
+				self._fastForward( step, relative, function( stepIndex, stepsTaken ) {
+					callback.call( self, stepIndex, history ? stepsTaken : undefined );
+				});
 
 			} else {
-				step += ( current.stepsActivated.length - 1 );
-				callback.call( this, current.stepsActivated[ step > 0 ? step : 0 ] );
+				callback.call( self, current.stepsActivated[
+					step + ( current.stepsActivated.length - 1 ) ] );
 			}
 
 		} else {
-			step = this.stepIndex( step, branch );
+			step = self.stepIndex( step, branch );
 
-			if ( fastForward && step > current.stepIndex ) {
-				this._fastForward( step, callback );
+			if ( history && step > current.stepIndex ) {
+				self._fastForward( step, callback );
 
 			} else {
-				callback.call( this, step );
+				callback.call( self, step );
 			}
 		}
 	},
@@ -454,18 +460,21 @@ $.widget( namespace.replace( "-", "." ), {
 	},
 
 	backward: function( event, howMany ) {
-		if ( this._currentState.isFirstStep ) {
-			return;
-		}
-
 		if ( typeof event === num ) {
 			howMany = event;
 			event = undefined;
 		}
 
-		this._move( -( howMany || 1 ), function( stepIndex, stepsTaken ) {
+		if ( howMany === undefined ) {
+			howMany = 1;
+
+		} else if ( this._currentState.isFirstStep || typeof howMany !== num ) {
+			return;
+		}
+
+		this._move( -howMany, true, false, function( stepIndex, stepsTaken ) {
 			this._update( event, this._state( stepIndex, stepsTaken ) );
-		}, true );
+		});
 	},
 
 	branch: function( branch ) {
@@ -500,20 +509,23 @@ $.widget( namespace.replace( "-", "." ), {
 		return this.elements.form;
 	},
 
-	forward: function( event, howMany, fastForward ) {
-		if ( this._currentState.isLastStep ) {
-			return;
-		}
-
+	forward: function( event, howMany, history ) {
 		if ( typeof event === num ) {
 			fastForward = howMany;
 			howMany = event;
 			event = undefined;
 		}
 
-		this._move( howMany || 1, function( stepIndex, stepsTaken ) {
+		if ( howMany === undefined ) {
+			howMany = 1;
+
+		} else if ( this._currentState.isLastStep || typeof howMany !== num ) {
+			return;
+		}
+
+		this._move( howMany, true, history, function( stepIndex, stepsTaken ) {
 			this._update( event, this._state( stepIndex, stepsTaken ) );
-		}, true, fastForward !== false );
+		});
 	},
 
 	isValidStep: function( step ) {
@@ -528,7 +540,7 @@ $.widget( namespace.replace( "-", "." ), {
 		return this._stepCount;
 	},
 
-	select: function( event, step, branch, relative, fastForward ) {
+	select: function( event, step, branch, relative, history ) {
 		if ( !( event instanceof $.Event ) ) {
 			fastForward = branch;
 			branch = step;
@@ -536,23 +548,21 @@ $.widget( namespace.replace( "-", "." ), {
 			event = undefined;
 		}
 
-		if ( branch === bool ) {
-			fastForward = relative;
+		if ( typeof branch === bool ) {
+			history = relative;
 			relative = branch;
 			branch = undefined;
 		}
 
-		this._move( step, branch, function( stepIndex, stepsTaken ) {
+		this._move( step, branch, relative, history, function( stepIndex, stepsTaken ) {
 			this._update( event, this._state( stepIndex, stepsTaken ) );
-		}, relative, fastForward !== false );
+		});
 	},
 
 	state: function( step, branch, stepsTaken ) {
-		if ( !arguments.length ) {
-			return this._currentState;
-		}
-
-		return this._state( this.stepIndex( step, branch ), stepsTaken );
+		return arguments.length ?
+			this._state( this.stepIndex( step, branch ), stepsTaken ) :
+			this._currentState;
 	},
 
 	step: function( step, branch ) {
@@ -578,7 +588,6 @@ $.widget( namespace.replace( "-", "." ), {
 				// If a branch is found, the arguments are essentially flip-flopped
 				$step = this._find( branch || 0, this.steps( $step ) );
 			}
-
 		}
 
 		return $step;

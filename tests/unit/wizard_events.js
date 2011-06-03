@@ -40,14 +40,12 @@ test( "cancel backward", function() {
 test( "forward", function() {
 	expect( 4 );
 
-	var $wizard = $( "#wizard" );
-
-	$wizard
+	$( "#wizard" )
 		.bind( "wizardbeforeforward", callback )
 		.bind( "wizardafterforward", callback )
 		.wizard()
 		.wizard( "forward" )
-		.wizard( "select", $wizard.wizard( "stepCount" ) - 1 )
+		.wizard( "select", -1 )
 		// Can't go forward on last step
 		.wizard( "forward" );
 });
@@ -75,7 +73,7 @@ test( "select", function() {
 		.wizard( "forward" )
 		.wizard( "select", 3 )
 		.wizard( "select", -1 )
-		.wizard( "select", 2, true )
+		.wizard( "select", -2, true )
 		.wizard( "select", null )
 		.wizard( "select", "asdf" )
 		.wizard( "backward" );
