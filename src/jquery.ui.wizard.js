@@ -560,9 +560,16 @@ $.widget( namespace.replace( "-", "." ), {
 	},
 
 	state: function( step, branch, stepsTaken ) {
-		return arguments.length ?
-			this._state( this.stepIndex( step, branch ), stepsTaken ) :
-			this._currentState;
+		if ( !arguments.length ) {
+			return this._currentState;
+		}
+
+		if ( $.isArray( branch ) ) {
+			stepsTaken = branch;
+			branch = undefined;
+		}
+
+		return this._state( this.stepIndex( step, branch ), stepsTaken );
 	},
 
 	step: function( step, branch ) {
@@ -570,7 +577,7 @@ $.widget( namespace.replace( "-", "." ), {
 			return this._currentState.step;
 		}
 
-		var $step = null,
+		var $step,
 			type = typeof step;
 
 		// Searching for a step by index
@@ -580,7 +587,7 @@ $.widget( namespace.replace( "-", "." ), {
 				branch !== undefined ? this.steps( branch ) : this.elements.steps );
 
 		// Searching for a step or branch by string ID, DOM element or jQuery object
-		} else if ( type === str || type === obj ) {
+		} else {
 			$step = this._find( step, this.elements.steps.add( this.elements.branches ) );
 
 			if ( $step && $step.hasClass( className.branch ) ) {
