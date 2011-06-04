@@ -362,9 +362,30 @@ any relevent information you may need.
 
 ## State
 
+    {
+        branch: [ form#defaultBranch.ui-wizard-form ],
+        branchLabel: "defaultBranch",
+        branchStepCount: 3,
+        branchesActivated: [ "defaultBranch" ],
+        isFirstStep: true,
+        isFirstStepInBranch: true,
+        isLastStep: false,
+        isLastStepInBranch: false,
+        isMovingForward: false,
+        percentComplete: 0,
+        step: [ div.step ],
+        stepIndex: 0,
+        stepIndexInBranch: 0,
+        stepsActivated: [ 0 ],
+        stepsComplete: 0,
+        stepsPossible: 2,
+        stepsRemaining: 2
+    }
+
 The wizard keeps track of its current state using an object map of keys and
-values. This map can be accessed at any time via the `state()` method and is
-also passed in to event handlers. The keys and their values are outlined below.
+values. This map can be accessed at any time via the `state()` method. It is
+also passed in as the second argument to event handlers. The keys and their
+values are outlined below.
 
 *   **branch** _jQuery_  
     The branch the wizard is currently on.
