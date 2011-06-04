@@ -199,10 +199,229 @@ Every event is called with the same two arguments:
 *   **state** _Object_  
     An object containing either the current state of the wizard (for _after_
     events) or the state the wizard will be updating to (for _before_ events).
-
+    See the state section for further information.
 
 ## Methods
 
+    $( "form" ).wizard( "methodName" [, args ] );
+
+The wizard comes with plenty of public methods to help you navigate and get at
+any relevent information you may need.
+
+*   **backward( [ event, howMany ] )**  
+    Step backward through the wizard.
+
+    *   **event** _Event_  
+        The [jQuery.Event](http://api.jquery.com/category/events/event-object/)
+        object. Used when the function is called via a trigger or event handler.
+
+    *   **howMany** _Number_  
+        How many steps to take backwards. Should be a positive integer greater
+        than zero.
+
+*   **branch( [ branch ] )** returns _jQuery_  
+    Returns a branch from the wizard. If no arguments are provided, it will
+    return the currently active branch.
+
+    *   **branch** _String_  
+        The ID of a branch in the wizard.
+
+*   **branches( [ branch ] )** returns _jQuery_
+    Returns several branches in the wizard. If no arguments are provided, it
+    will return all of the branches in the wizard.
+
+    *   **branch** _String_  
+        The ID of a branch in the wizard. If provided, all of the branches
+        within the given branch are returned.
+
+*   **branchesActivated()** returns _jQuery_  
+    Returns all of the activated branches in the wizard. An activated branch
+    is defined as any branch containing a step that has been visited.
+
+*   **destroy()**  
+    Completely remove the wizard functionality from the element it was attached
+    to. This basically reverts the element to the state it was before the
+    wizard was applied to it.
+
+*   **form()** returns _jQuery_  
+    Returns the form associated with the wizard.
+
+*   **forward( [ event, howMany ] )**  
+    Step forward through the wizard.
+
+    *   **event** _Event_  
+        The [jQuery.Event](http://api.jquery.com/category/events/event-object/)
+        object. Used when the function is called via a trigger or event handler.
+
+    *   **howMany** _Number_  
+        How many steps to take forwards. Should be a positive integer greater
+        than zero.
+
+*   **isValidStep( step )** returns _Boolean_  
+    Returns whether or not a step is valid, or contained within the wizard.
+
+    *   **step** _String_, _Number_, _jQuery_, _Element_  
+        The step to check for in the wizard. Can be an element ID, step index,
+        jQuery object or DOM element.
+
+*   **isValidStepIndex( stepIndex )** returns _Boolean_  
+    Returns whether or not a step index is valid, or contained within the
+    wizard.
+
+    *   **stepIndex** _Number_  
+        An integer representing the index of a step in the wizard.
+
+*   **length()** returns _Number_  
+    Returns the number of steps in the wizard.
+
+*   **select( [ event, ] step [, branch, relative, history ] )**  
+    Selects a step within the wizard.
+
+    *   **event** _Event_  
+        The [jQuery.Event](http://api.jquery.com/category/events/event-object/)
+        object. Used when the function is called via a trigger or event handler.
+
+    *   **step** _String_, _Number_, _jQuery_, _Element_  
+        A step in the wizard. Can be an element ID, step index, jQuery object
+        or DOM element.
+
+    *   **branch** _String_  
+        The ID of the branch that contains the step. Useful of searching for a
+        step by step index relative to a branch. This parameter may be omitted
+        even if further arguments are needed.
+
+    *   **relative** _Boolean_  
+        If true, the step argument becomes an integer representing the number
+        of steps to move forwards or backwards relative to the current step.
+
+    *   **history** _Boolean_  
+        Whether or not to track the movements between the current step and the
+        destination step. If set to false, the history will not be kept. This
+        means that when hitting the back button on the selected step, the user
+        will be taken directly back to the step they were on beforehand instead
+        of visiting any steps in between.
+
+*   **state( [ step, branch, stepsTaken ] )** returns _Object_  
+    Returns an object containing the state of the wizard at a certain step. If
+    no arguments are provided, returns the current state of the wizard. See the
+    state section for further information.
+
+    *   **step** _String_, _Number_, _jQuery_, _Element_  
+        A step in the wizard. Can be an element ID, step index, jQuery object
+        or DOM element.
+
+    *   **branch** _String_  
+        The ID of the branch that contains the step. Useful of searching for a
+        step by step index relative to a branch. This parameter may be omitted
+        even if further arguments are needed.
+
+    *   **stepsTaken** _Array_  
+        An array of step indexes that represent the path taken to get to the
+        given step from the current step. This should be provided if tracking
+        history for the generation of an accurate state.
+
+*   **step( [ step, branch ] )** returns _jQuery_  
+    Returns a step from the wizard. If no arguments are provided, it will
+    return the currently selected step in the wizard.
+
+    *   **step** _String_, _Number_, _jQuery_, _Element_  
+        A step in the wizard. Can be an element ID, step index, jQuery object
+        or DOM element.
+
+    *   **branch** _String_  
+        The ID of the branch that contains the step. Useful of searching for a
+        step by step index relative to a branch. This parameter may be omitted
+        even if further arguments are needed.
+
+*   **stepIndex( step, [ branch, relative ] )** returns _Number_  
+    Given a step ID, jQuery object or DOM element representing a step, returns
+    the index for that step, or -1 if the step could not be found.
+
+    *   **branch** _String_  
+        The ID of the branch that contains the step. Useful of searching for a
+        step by step index relative to a branch. This parameter may be omitted
+        even if further arguments are needed.
+
+    *   **relative** _Boolean_  
+        If true, the index returned will be relative to its containing branch.
+
+*   **steps( [ branch ] )** returns _jQuery_  
+    Returns steps within the wizard. If no arguments are provided, it will
+    return all of the steps in the wizard.
+
+    *   **branch** _String_  
+        An ID of a branch within the wizard. If this parameter is given, all
+        of the steps within the branch will be returned.
+
+*   **stepsActivated()** returns _jQuery_  
+    Returns all of the activated steps in the wizard. An activated step is
+    defined as one that the user has visited.
+
+*   **submit()**  
+    Submits the form attached to the wizard.
+
+## State
+
+The wizard keeps track of its current state using an object map of keys and
+values. This map can be accessed at any time via the `state()` method and is
+also passed in to event handlers. The keys and their values are outlined below.
+
+*   **branch** _jQuery_  
+    The branch the wizard is currently on.
+
+*   **branchLabel** _String_  
+    The label, or ID, of the currently active branch.
+
+*   **branchStepCount** _Number_  
+    The total number of steps in the current branch.
+
+*   **branchesActivated** _Array_  
+    An array containing all of the currently activated branch labels.
+
+*   **isFirstStep** _Boolean_  
+    Whether or not the current step is the first step in the wizard.
+
+*   **isFirstStepInBranch** _Boolean_  
+    Whether or not the current step is the first step in its containing branch.
+
+*   **isLastStep** _Boolean_  
+    Whether or not the current step is the last step in the wizard.
+
+*   **isLastStepInBranch** _Boolean_  
+    Whether or not the current step is the last step in its containing branch.
+
+*   **isMovingForward** _Boolean_  
+    Whether or not the wizard is progressing forward, that is that the current
+    step index is greater than the previous step index.
+
+*   **percentComplete** _Number_  
+    A number representing the _estimated_ percent of completion of the wizard.
+    This is a numerical value between 0 and 100.
+
+*   **step** _jQuery_  
+    The step the wizard is currently on.
+
+*   **stepIndex** _Number_  
+    The index of the currently active step.
+
+*   **stepIndexInBranch** _Number_  
+    The index of the currently active step relative to its containing branch.
+
+*   **stepsActivated** _Array_  
+    An array containing all of the currently activated step indexes.
+
+*   **stepsComplete** _Number_  
+    The number of steps in the wizard that the user has completed. These steps
+    will be contained in the _stepsActivated_ array, minus any steps the
+    developer has decided to exclude.
+
+*   **stepsPossible** _Number_  
+    The _estimated_ number of steps the user could possibly activate. This is
+    calculated by counting all of the steps in every branch the user has
+    activated, minus any steps the developer has decided to exclude.
+
+*   **stepsRemaining** _Number_  
+    The _estimated_ difference between _stepsComplete_ and _stepsPossible_.
 
 
 ## Requirements
