@@ -451,7 +451,7 @@ values are outlined below.
     Versions 1.3.2 or higher.
 
 *   **[jQuery UI](http://jqueryui.com/)**  
-    Core and Widget, versions 1.7.3 or higher.
+    Core and Widget, versions 1.8.0 or higher.
 
 ## Compabitility
 
