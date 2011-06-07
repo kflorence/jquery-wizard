@@ -261,7 +261,8 @@ $.widget( namespace.replace( "-", "." ), {
 
 			} else {
 				callback.call( self, current.stepsActivated[
-					step + ( current.stepsActivated.length - 1 ) ] );
+					// Normalize to zero if negative
+					Math.max( 0, step + ( current.stepsActivated.length - 1 ) ) ] );
 			}
 
 		} else {
