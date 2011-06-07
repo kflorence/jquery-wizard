@@ -112,13 +112,12 @@ $.widget( namespace.replace( "-", "." ), {
 			o = self.options,
 			$element = self.element
 				.addClass( namespace + " " + widgetClasses ),
-			$elements = self.elements = {},
 			$form = $element[ 0 ].elements ? $element :
 				$element.find( form ) || $element.closest( form ),
 			$steps = $element.find( o.steps ),
 			$stepsWrapper = $steps.eq( 0 ).parent();
 
-		$.extend( $elements, {
+		self.elements = {
 			form: $form.addClass( className.form ),
 			submit: $form.find( o.submit ),
 			forward: $form.find( o.forward ),
@@ -127,19 +126,19 @@ $.widget( namespace.replace( "-", "." ), {
 			steps: $element.find( o.steps ).hide().addClass( className.step + " " + stepClasses ),
 			branches: $element.find( o.branches ).add( $stepsWrapper ).addClass( className.branch ),
 			stepsWrapper: $stepsWrapper.addClass( className.wrapper )
-		});
+		};
 
 		if ( !$stepsWrapper.attr( id ) ) {
 			// stepsWrapper must have an ID as it also functions as the default branch
 			$stepsWrapper.attr( id, namespace + "-" + ++count );
 		}
 
-		$elements.forward.click(function( event ) {
+		self.elements.forward.click(function( event ) {
 			event.preventDefault();
 			self.forward( event );
 		});
 
-		$elements.backward.click(function( event ) {
+		self.elements.backward.click(function( event ) {
 			event.preventDefault();
 			self.backward( event );
 		});
@@ -149,12 +148,12 @@ $.widget( namespace.replace( "-", "." ), {
 			stepsActivated: []
 		};
 
-		self._stepCount = $elements.steps.length;
+		self._stepCount = self.elements.steps.length;
 		self._lastStepIndex = self._stepCount - 1;
 
 		// Cache branch labels for quick access later
 		self._branchLabels = [];
-		$elements.steps.each(function( i ) {
+		self.elements.steps.each(function( i ) {
 			self._branchLabels[ i ] = $( this ).parent().attr( id );
 		});
 
