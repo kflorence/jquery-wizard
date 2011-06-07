@@ -479,7 +479,7 @@ $.widget( namespace.replace( "-", "." ), {
 
 	branch: function( branch ) {
 		return arguments.length ?
-			this._find( branch, this.elements.branches ) : this.elements.branch;
+			this._find( branch, this.elements.branches ) : this._currentState.branch;
 	},
 
 	branches: function( branch ) {
