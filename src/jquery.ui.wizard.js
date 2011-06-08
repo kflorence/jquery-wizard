@@ -287,11 +287,11 @@ $.widget( namespace.replace( "-", "." ), {
 		// stepsTaken must be an array of at least one step
 		stepsTaken = arr( stepsTaken || stepIndex );
 
-		state.step = this.step( stepIndex );
+		state.step = this.elements.steps.eq( stepIndex );
 		state.branch = state.step.parent();
 		state.branchStepCount = state.branch.children( selector.step ).length;
 		state.isMovingForward = stepIndex > state.stepIndex;
-		state.stepIndexInBranch = this.stepIndex( stepIndex, true );
+		state.stepIndexInBranch = state.branch.index( state.step );
 
 		var branchLabel, branchSpliceIndex, stepSpliceIndex,
 			i = 0,
