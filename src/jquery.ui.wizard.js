@@ -182,7 +182,8 @@ $.widget( namespace.replace( "-", "." ), {
 				} else {
 					stepsTaken.push( stepIndex );
 
-					if ( ( relative ? ++i : stepIndex ) === toIndex ) {
+					if ( stepIndex === self._lastStepIndex ||
+						( relative ? ++i : stepIndex ) === toIndex ) {
 						callback.call( self, stepIndex, stepsTaken );
 
 					} else {
