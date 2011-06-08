@@ -126,7 +126,7 @@ test( "select", function() {
 });
 
 test( "state", function() {
-	
+	expect( 4 );
 
 	equals( $w.wizard( "state" ).stepIndex, 0, "Current state" );
 	equals( $w.wizard( "state", 1 ).stepIndex, 1, "State for step index 1" );
