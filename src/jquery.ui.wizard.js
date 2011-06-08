@@ -199,7 +199,7 @@ $.widget( namespace.replace( "-", "." ), {
 			found = [],
 			$haystack = haystack instanceof jQuery ? haystack : $( haystack );
 
-		if ( needles !== undefined && $haystack.length ) {
+		if ( needles != undefined && $haystack.length ) {
 			needles = arr( needles );
 
 			for ( i = 0, l = needles.length; i < l; i++ ) {
