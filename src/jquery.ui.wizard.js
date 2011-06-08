@@ -555,6 +555,10 @@ $.widget( namespace.replace( "-", "." ), {
 			branch = undefined;
 		}
 
+		if ( step == undefined ) {
+			return;
+		}
+
 		this._move( step, branch, relative, history, function( stepIndex, stepsTaken ) {
 			this._update( event, this._state( stepIndex, stepsTaken ) );
 		});
