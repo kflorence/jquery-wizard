@@ -515,7 +515,6 @@ $.widget( namespace.replace( "-", "." ), {
 			history = howMany;
 			howMany = event;
 			event = undefined;
-
 		}
 
 		if ( howMany === undefined ) {
