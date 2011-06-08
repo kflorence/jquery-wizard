@@ -524,7 +524,7 @@ $.widget( namespace.replace( "-", "." ), {
 		} else if ( this._currentState.isLastStep || typeof howMany !== num ) {
 			return;
 		}
-console.log( "history", history );
+
 		this._move( howMany, true, history, function( stepIndex, stepsTaken ) {
 			this._update( event, this._state( stepIndex, stepsTaken ) );
 		});
