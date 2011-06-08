@@ -543,7 +543,8 @@ $.widget( namespace.replace( "-", "." ), {
 
 	select: function( event, step, branch, relative, history ) {
 		if ( !( event instanceof $.Event ) ) {
-			fastForward = branch;
+			history = relative;
+			relative = branch;
 			branch = step;
 			step = event;
 			event = undefined;
