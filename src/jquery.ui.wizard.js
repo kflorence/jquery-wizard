@@ -265,9 +265,8 @@ $.widget( namespace.replace( "-", "." ), {
 					Math.max( 0, step + ( current.stepsActivated.length - 1 ) ) ] );
 			}
 
-		} else {
-			step = self.stepIndex( step, branch );
-
+		// Don't attempt to move to invalid steps
+		} else if ( ( step = self.stepIndex( step, branch ) ) !== -1 ) {
 			if ( history && step > current.stepIndex ) {
 				self._fastForward( step, callback );
 
@@ -619,18 +618,7 @@ $.widget( namespace.replace( "-", "." ), {
 			branch = undefined;
 		}
 
-		if ( step != null ) {
-
-			// Speed it up if we are given a jQuery object or DOM element
-			if ( ( step instanceof jQuery && step.length ) || step.nodeType ) {
-				$step = step;
-
-			} else {
-				$step = this.step( step, branch );
-			}
-		}
-
-		return $step ?
+		return ( $step = this.step( step, branch ) ) ?
 			// The returned index can be relative to a branch, or to all steps
 			( relative ? $step.siblings( selector.step ).andSelf() : this.elements.steps )
 				.index( $step )
