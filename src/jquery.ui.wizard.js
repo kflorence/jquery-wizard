@@ -108,14 +108,19 @@ $.widget( namespace.replace( "-", "." ), {
 	},
 
 	_create: function() {
-		var self = this,
+		var $form,
+			self = this,
 			o = self.options,
-			$element = self.element
-				.addClass( namespace + " " + widgetClasses ),
-			$form = $element[ 0 ].elements ? $element :
-				$element.find( form ) || $element.closest( form ),
+			$element = self.element,
 			$steps = $element.find( o.steps ),
 			$stepsWrapper = $steps.eq( 0 ).parent();
+
+		if ( $element[ 0 ].elements ) {
+			$form = $element;
+
+		} else if ( !( $form = $element.find( form ) ).length ) {
+			$form = $element.closest( form );
+		}
 
 		self.elements = {
 			form: $form.addClass( className.form ),
@@ -125,10 +130,12 @@ $.widget( namespace.replace( "-", "." ), {
 			header: $element.find( o.header ).addClass( className.header + " " + headerClasses ),
 			steps: $element.find( o.steps ).hide().addClass( className.step + " " + stepClasses ),
 			branches: $element.find( o.branches ).add( $stepsWrapper ).addClass( className.branch ),
-			stepsWrapper: $stepsWrapper.addClass( className.wrapper )
+			stepsWrapper: $stepsWrapper.addClass( className.wrapper ),
+			wizard: $element.addClass( namespace + " " + widgetClasses )
 		};
 
 		if ( !$stepsWrapper.attr( id ) ) {
+
 			// stepsWrapper must have an ID as it also functions as the default branch
 			$stepsWrapper.attr( id, namespace + "-" + ++count );
 		}
