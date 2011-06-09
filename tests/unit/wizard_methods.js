@@ -59,9 +59,11 @@ test( "destroy", function() {
 });
 
 test( "form", function() {
-	expect( 1 );
+	expect( 3 );
 
-	equals( $w.wizard( "form" )[0].tagName, "FORM", "Wizard has a form" );
+	equals( $w.wizard( "form" )[0].tagName, "FORM", "#wizard has a form" );
+	equals( $( "#wizard2" ).wizard().wizard( "form" )[0].tagName, "FORM", "#wizard2 has a form" );
+	equals( $( "#wizard3" ).wizard().wizard( "form" )[0].tagName, "FORM", "#wizard3 has a form" );
 });
 
 test( "forward", function() {
