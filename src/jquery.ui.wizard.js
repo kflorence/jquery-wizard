@@ -108,7 +108,7 @@ $.widget( namespace.replace( "-", "." ), {
 	},
 
 	_create: function() {
-		var $form,
+		var $form, $header,
 			self = this,
 			o = self.options,
 			$element = self.element,
@@ -118,8 +118,14 @@ $.widget( namespace.replace( "-", "." ), {
 		if ( $element[ 0 ].elements ) {
 			$form = $element;
 
+		// If element isn't form, look inside and outside element
 		} else if ( !( $form = $element.find( form ) ).length ) {
 			$form = $element.closest( form );
+		}
+
+		// If header isn't found in element, look in form scope
+		if ( !( $header = $element.find( o.header ) ).length ) {
+			$header = $form.find( o.header );
 		}
 
 		self.elements = {
@@ -127,7 +133,7 @@ $.widget( namespace.replace( "-", "." ), {
 			submit: $form.find( o.submit ),
 			forward: $form.find( o.forward ),
 			backward: $form.find( o.backward ),
-			header: $element.find( o.header ).addClass( className.header + " " + headerClasses ),
+			header: $header.addClass( className.header + " " + headerClasses ),
 			steps: $element.find( o.steps ).hide().addClass( className.step + " " + stepClasses ),
 			branches: $element.find( o.branches ).add( $stepsWrapper ).addClass( className.branch ),
 			stepsWrapper: $stepsWrapper.addClass( className.wrapper ),
