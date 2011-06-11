@@ -107,7 +107,7 @@ test( "length", function() {
 	expect( 3 );
 
 	equals( $w.wizard( "length" ), 8, "#wizard contains 8 steps" );
-	equals( $( "#wizard2" ).wizard().wizard( "length" ), 2, "#wizard2 contains 2 steps" );
+	equals( $( "#wizard2" ).wizard().wizard( "length" ), 5, "#wizard2 contains 5 steps" );
 	equals( $( "#wizard3" ).wizard().wizard( "length" ), 1, "#wizard3 contains 1 step" );
 });
 
