@@ -378,11 +378,14 @@ $.widget( namespace.replace( "-", "." ), {
 	_transition: function( step, branch, action ) {
 		var self = this;
 
+		// args: action
+		// step becomes the current step
 		if ( $.isFunction( step ) ) {
 			action = step;
 			step = self._currentState.stepIndex;
 			branch = undefined;
 
+		// args: step, action
 		} else if ( $.isFunction( branch ) ) {
 			action = branch;
 			branch = undefined;
@@ -541,8 +544,8 @@ $.widget( namespace.replace( "-", "." ), {
 		});
 	},
 
-	isValidStep: function( step ) {
-		return this.isValidStepIndex( this.stepIndex( step ) );
+	isValidStep: function( step, branch ) {
+		return this.isValidStepIndex( this.stepIndex( step, branch ) );
 	},
 
 	isValidStepIndex: function( stepIndex ) {
@@ -554,6 +557,8 @@ $.widget( namespace.replace( "-", "." ), {
 	},
 
 	select: function( event, step, branch, relative, history ) {
+
+		// args: step, branch, relative, history
 		if ( !( event instanceof $.Event ) ) {
 			history = relative;
 			relative = branch;
@@ -562,14 +567,22 @@ $.widget( namespace.replace( "-", "." ), {
 			event = undefined;
 		}
 
-		if ( typeof branch === bool ) {
+		if ( step == undefined ) {
+			return;
+		}
+
+		// args: [ step, branch ], relative, history
+		if ( $.isArray( step ) ) {
+			history = relative;
+			relative = branch;
+			branch = step[ 1 ];
+			step = step[ 0 ];
+
+		// args: step, relative, history
+		} else if ( typeof branch === bool ) {
 			history = relative;
 			relative = branch;
 			branch = undefined;
-		}
-
-		if ( step == undefined ) {
-			return;
 		}
 
 		this._move( step, branch, relative, history, function( stepIndex, stepsTaken ) {
@@ -582,7 +595,14 @@ $.widget( namespace.replace( "-", "." ), {
 			return this._currentState;
 		}
 
-		if ( $.isArray( branch ) ) {
+		// args: [ step, branch ], stepsTaken
+		if ( $.isArray( step ) ) {
+			stepsTaken = branch;
+			branch = step[ 1 ];
+			step = step[ 0 ];
+
+		// args: step, stepsTaken
+		} else if ( $.isArray( branch ) ) {
 			stepsTaken = branch;
 			branch = undefined;
 		}
@@ -593,6 +613,12 @@ $.widget( namespace.replace( "-", "." ), {
 	step: function( step, branch ) {
 		if ( !arguments.length ) {
 			return this._currentState.step;
+		}
+
+		// args: [ step, branch ]
+		if ( $.isArray( step ) ) {
+			branch = step[ 1 ];
+			step = step[ 0 ];
 		}
 
 		var $step,
@@ -625,8 +651,14 @@ $.widget( namespace.replace( "-", "." ), {
 
 		var $step;
 
-		// Branch argument is optional
-		if ( typeof branch === bool ) {
+		// args: [ step, branch ], relative
+		if ( $.isArray( step ) ) {
+			relative = branch;
+			branch = step[ 1 ];
+			step = step[ 0 ];
+
+		// args: step, relative
+		} else if ( typeof branch === bool ) {
 			relative = branch;
 			branch = undefined;
 		}
