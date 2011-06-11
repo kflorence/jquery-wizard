@@ -52,19 +52,25 @@
 					<!-- Navigation -->
 					<button type="button" name="backward" class="backward">Backward</button>
 					<button type="button" name="forward" class="forward">Forward</button>
-					<button type="button" name="process" class="submit">Submit</button>
+					<button type="submit" name="process" class="submit">Submit</button>
 				</form>
 			</div>
 
 			<!-- form outside of wizard -->
 			<form id="form2">
-				<div id="wizard2" class="wizard">
-					<div class="step"></div>
-					<div class="step"></div>
+				<h2>Heading</h2>
+
+				<div id="wizard2" class="wizard wizardBranch">
+					<div class="step" state="step3"></div>
+					<div class="step wizardExclude" id="step2"></div>
+					<div class="step" id="step3"></div>
+					<div class="step wizardStop"></div>
+					<div class="step wizardSubmit wizardNoBackward"></div>
 				</div>
 
 				<button type="button" name="previous" class="previous">Previous</button>
 				<button type="button" name="next" class="next">Next</button>
+				<button type="submit" name="process" class="submit">Submit</button>
 			</form>
 
 			<!-- form is wizard -->
