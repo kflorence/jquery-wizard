@@ -122,4 +122,60 @@ test( "{ stepClasses: object }", function() {
 		"Backward is disabled on a step with the class 'wizardNoBackward'" );
 });
 
+test( "{ steps: string }", function() {
+	expect( 2 );
+
+	equals( $w.wizard().data( "wizard" ).elements.steps.length, 8 );
+	equals( $( "#wizard3" ).wizard({
+			steps: ".wizardStep"
+		}).data( "wizard" ).elements.branches.length, 1 );
+});
+
+test( "{ submit: string }", function() {
+	expect( 2 );
+
+	equals( $w.wizard().data( "wizard" ).elements.submit.length, 1 );
+	equals( $( "#wizard3" ).wizard({
+			submit: ".process"
+		}).data( "wizard" ).elements.submit.length, 1 );
+});
+
+test( "{ transitions: object }", function() {
+		expect( 5 );
+
+		var $w4 = $( "#wizard4" );
+
+		equals( $w2.wizard({
+				stateAttribute: "state"
+			}).wizard( "stepIndex" ), 0 );
+
+		equals( $w2.wizard( "forward" ).wizard( "stepIndex" ), 2 );
+
+		equals( $w4.wizard({
+				transitions: {
+					findNext: function( step ) {
+						return step.find( "[name=next]" ).val();
+					}
+				}
+			}).wizard( "stepIndex" ), 0 );
+
+		equals( $w4.wizard( "forward" ).wizard( "stepIndex" ), 2,
+			"Step with state 'findNext' transitioned correctly" );
+		equals( $w4.wizard( "forward" ).wizard( "stepIndex" ), 3,
+			"Default method is still present" );
+});
+
+test( "{ unidirectional: boolean }", function() {
+	expect( 2 );
+
+	ok( $w.wizard().wizard( "forward" ).data( "wizard" ).elements.backward.is( ":enabled" ),
+		"Backward button is enabled on non-unidirectional wizard" );
+
+	ok( $w2.wizard({
+			backward: ".previous",
+			unidirectional: true
+		}).wizard( "forward" ).data( "wizard" ).elements.backward.is( ":disabled" ),
+		"Backward button is disabled on unidirectional wizard" );
+});
+
 })( jQuery );
