@@ -1,35 +1,31 @@
-/*
 commonWidgetTests( "wizard", {
 	defaults: {
-		actions: {},
-		actionAttribute: "data-action",
-		actionDefault: function( $step ) {
-			return this.index( $step.nextAll( selectors.step ) );
-		},
 		animations: {
 			show: {
-				properties: {
-					opacity: "show"
-				},
 				options: {
 					duration: 0
+				},
+				properties: {
+					opacity: "show"
 				}
 			},
 			hide: {
-				properties: {
-					opacity: "hide"
-				},
 				options: {
 					duration: 0
+				},
+				properties: {
+					opacity: "hide"
 				}
 			}
 		},
-		branches: ".branch",
 		backward: ".backward",
+		branches: ".branch",
+		disabled: false,
 		enableSubmit: false,
 		forward: ".forward",
-		headers: "> :header:first",
+		header: ":header:first",
 		initialStep: 0,
+		stateAttribute: "data-state",
 		stepClasses: {
 			current: "current",
 			exclude: "exclude",
@@ -38,9 +34,16 @@ commonWidgetTests( "wizard", {
 			unidirectional: "unidirectional"
 		},
 		steps: ".step",
-		stepsWrapper: "<div>",
 		submit: ":submit",
-		unidirectional: false
+		transitions: {},
+		unidirectional: false,
+
+		/* events */
+		afterBackward: null,
+		afterForward: null,
+		afterSelect: null,
+		beforeBackward: null,
+		beforeForward: null,
+		beforeSelect: null
 	}
 });
-*/
