@@ -36,7 +36,7 @@ test( "wizard classes", function() {
 
 	var $wizard = $( "#wizard" ).wizard();
 
-	ok( $wizard.hasClass( "ui-wizard" ), "Wizard has ui-wizard class" );
+	ok( $wizard.hasClass( "wizard" ), "Wizard has 'wizard' class" );
 
 	$.each({
 		header: "> :header:first",
@@ -44,8 +44,8 @@ test( "wizard classes", function() {
 		step: ".step",
 		branch: ".branch"
 	}, function(k, v) {
-		ok( $wizard.find( v ).hasClass( "ui-wizard-" + k ),
-			"Wizard (" + v + ") has ui-wizard-" + k + " class" );
+		ok( $wizard.find( v ).hasClass( "wizard-" + k ),
+			"Wizard (" + v + ") has wizard-" + k + " class" );
 	});
 });
 

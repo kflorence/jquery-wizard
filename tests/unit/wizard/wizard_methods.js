@@ -53,8 +53,8 @@ test( "branchesActivated", function() {
 test( "destroy", function() {
 	expect( 2 );
 
-	ok( $w.hasClass( "ui-wizard" ) && $w.data( "wizard" ), "Wizard has been created" );
-	ok( !$w.wizard( "destroy" ).hasClass( "ui-wizard" ) && !$w.data( "wizard" ),
+	ok( $w.hasClass( "wizard" ) && $w.data( "wizard" ), "Wizard has been created" );
+	ok( !$w.wizard( "destroy" ).hasClass( "wizard" ) && !$w.data( "wizard" ),
 		"Wizard has been destroyed" );
 });
 

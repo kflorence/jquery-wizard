@@ -1,9 +1,8 @@
 /**
  * An asynchronous form wizard that supports branching.
- * This is NOT an official jQuery UI plugin.
  *
  * @author Kyle Florence <kyle[dot]florence[at]gmail[dot]com>
- * @website https://github.com/kflorence/jquery-ui-wizard/
+ * @website https://github.com/kflorence/jquery-wizard/
  * @version 0.4.0
  *
  * Depends:
@@ -35,6 +34,7 @@ var excludesFilter,
 	click = "click",
 	submit = "submit",
 	disabled = "disabled",
+	wizard = "wizard",
 
 	def = "default",
 	num = "number",
@@ -49,21 +49,14 @@ var excludesFilter,
 	beforeBackward = "beforeBackward",
 	beforeForward = "beforeForward",
 	beforeSelect = "beforeSelect",
-	beforeSubmit = "beforeSubmit",
-
-	// Classes
-	namespace = "ui-wizard",
-	stepClasses = "ui-widget-content ui-corner-all",
-	headerClasses = "ui-widget-header ui-helper-reset ui-corner-all",
-	widgetClasses = "ui-widget ui-widget-content ui-corner-all";
+	beforeSubmit = "beforeSubmit";
 
 // Generate selectors and class names for common wizard elements
 $.each( "branch form header step wrapper".split( " " ), function() {
-	selector[ this ] = "." + ( className[ this ] = namespace + "-" + this );
+	selector[ this ] = "." + ( className[ this ] = wizard + "-" + this );
 });
 
-// Use 'kf' namespace instead of 'ui'
-$.widget( namespace.replace( "ui-", "kf." ), {
+$.widget( "kf." + wizard, {
 	version: "@VERSION",
 	options: {
 		animations: {
@@ -139,17 +132,17 @@ $.widget( namespace.replace( "ui-", "kf." ), {
 			submit: $form.find( o.submit ),
 			forward: $form.find( o.forward ),
 			backward: $form.find( o.backward ),
-			header: $header.addClass( className.header + " " + headerClasses ),
-			steps: $element.find( o.steps ).hide().addClass( className.step + " " + stepClasses ),
+			header: $header.addClass( className.header ),
+			steps: $element.find( o.steps ).hide().addClass( className.step ),
 			branches: $element.find( o.branches ).add( $stepsWrapper ).addClass( className.branch ),
 			stepsWrapper: $stepsWrapper.addClass( className.wrapper ),
-			wizard: $element.addClass( namespace + " " + widgetClasses )
+			wizard: $element.addClass( wizard )
 		};
 
 		if ( !$stepsWrapper.attr( id ) ) {
 
 			// stepsWrapper must have an ID as it also functions as the default branch
-			$stepsWrapper.attr( id, namespace + "-" + ++count );
+			$stepsWrapper.attr( id, wizard + "-" + ++count );
 		}
 
 		self.elements.forward.click(function( event ) {
@@ -523,11 +516,11 @@ $.widget( namespace.replace( "ui-", "kf." ), {
 	destroy: function() {
 		var $elements = this.elements;
 
-		this.element.removeClass( namespace + " " + widgetClasses );
+		this.element.removeClass( wizard );
 
 		$elements.form.removeClass( className.form );
-		$elements.header.removeClass( className.header + " " + headerClasses );
-		$elements.steps.show().removeClass( className.step + " " + stepClasses );
+		$elements.header.removeClass( className.header );
+		$elements.steps.show().removeClass( className.step );
 		$elements.stepsWrapper.removeClass( className.wrapper );
 		$elements.branches.removeClass( className.branch );
 
