@@ -1,4 +1,4 @@
-# jQuery.ui.wizard ( unofficial )
+# jQuery.wizard
 
     $( "form" ).wizard( [ options ] );
 
