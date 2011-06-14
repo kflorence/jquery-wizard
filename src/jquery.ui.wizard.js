@@ -30,6 +30,7 @@ var count = 0,
 	submit = "submit",
 	disabled = "disabled",
 
+	def = "default",
 	num = "number",
 	obj = "object",
 	str = "string",
@@ -56,6 +57,7 @@ $.each( "branch form header step wrapper".split( " " ), function() {
 });
 
 $.widget( namespace.replace( "-", "." ), {
+	version: "@VERSION",
 	options: {
 		animations: {
 			show: {
@@ -77,6 +79,7 @@ $.widget( namespace.replace( "-", "." ), {
 		},
 		backward: ".backward",
 		branches: ".branch",
+		disabled: false,
 		enableSubmit: false,
 		forward: ".forward",
 		header: ":header:first",
@@ -91,11 +94,7 @@ $.widget( namespace.replace( "-", "." ), {
 		},
 		steps: ".step",
 		submit: ":submit",
-		transitions: {
-			default: function( step ) {
-				return this.stepIndex( step.nextAll( selector.step ) );
-			}
-		},
+		transitions: {},
 		unidirectional: false,
 
 		/* events */
@@ -169,6 +168,13 @@ $.widget( namespace.replace( "-", "." ), {
 		self.elements.steps.each(function( i ) {
 			self._branchLabels[ i ] = $( this ).parent().attr( id );
 		});
+
+		// Add default transition function if one wasn't defined
+		if ( !o.transitions[ def ] ) {
+			o.transitions[ def ] = function( step ) {
+				return self.stepIndex( step.nextAll( selector.step ) );
+			}
+		}
 
 		self.select( o.initialStep );
 	},
@@ -395,7 +401,7 @@ $.widget( namespace.replace( "-", "." ), {
 			o = self.options,
 			$step = self.step( step, branch ),
 			stateName = $step.attr( o.stateAttribute ),
-			transitionFunc = stateName ? o.transitions[ stateName ] : o.transitions[ "default" ];
+			transitionFunc = stateName ? o.transitions[ stateName ] : o.transitions[ def ];
 
 		if ( $.isFunction( transitionFunc ) ) {
 			response = transitionFunc.call( self, $step, function() {
