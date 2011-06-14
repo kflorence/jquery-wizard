@@ -1,7 +1,8 @@
 (function() {
+var namespace = "kf";
 
 function testWidgetDefaults( widget, defaults ) {
-	var pluginDefaults = $.ui[ widget ].prototype.options;
+	var pluginDefaults = $[ namespace ][ widget ].prototype.options;
 
 	// ensure that all defaults have the correct value
 	test( "defined defaults", function() {
@@ -33,7 +34,7 @@ function testWidgetOverrides( widget ) {
 	if ( $.uiBackCompat === false ) {
 		test( "$.widget overrides", function() {
 			$.each( privateMethods, function( i, method ) {
-				strictEqual( $.ui[ widget ].prototype[ method ],
+				strictEqual( $[ namespace ][ widget ].prototype[ method ],
 					$.Widget.prototype[ method ], "should not override " + method );
 			});
 		});
@@ -42,7 +43,7 @@ function testWidgetOverrides( widget ) {
 
 function testBasicUsage( widget ) {
 	test( "basic usage", function() {
-		var defaultElement = $.ui[ widget ].prototype.defaultElement;
+		var defaultElement = $[ namespace ][ widget ].prototype.defaultElement;
 		$( defaultElement ).appendTo( "body" )[ widget ]().remove();
 		ok( true, "initialized on element" );
 
@@ -61,7 +62,7 @@ window.commonWidgetTests = function( widget, settings ) {
 	testWidgetOverrides( widget );
 	testBasicUsage( widget );
 	test( "version", function() {
-		ok( "version" in $.ui[ widget ].prototype, "version property exists" );
+		ok( "version" in $[ namespace ][ widget ].prototype, "version property exists" );
 	});
 }
 

@@ -1,11 +1,16 @@
 /**
- * A jQuery UI wizard that supports branching.
+ * An asynchronous form wizard that supports branching.
+ * This is NOT an official jQuery UI plugin.
  *
  * @author Kyle Florence <kyle[dot]florence[at]gmail[dot]com>
  * @website https://github.com/kflorence/jquery-ui-wizard/
- * @version 0.3.0
+ * @version 0.4.0
  *
- * Dual licensed under the MIT and BSD licenses.
+ * Depends:
+ *  - jQuery version 1.3.2+
+ *  - jQuery UI widget 1.8.0+
+ *
+ * Dual licensed under the MIT and GPLv2 licenses.
  */
 
 (function( $, undefined ) {
@@ -56,7 +61,8 @@ $.each( "branch form header step wrapper".split( " " ), function() {
 	selector[ this ] = "." + ( className[ this ] = namespace + "-" + this );
 });
 
-$.widget( namespace.replace( "-", "." ), {
+// Use 'kf' namespace instead of 'ui'
+$.widget( namespace.replace( "ui-", "kf." ), {
 	version: "@VERSION",
 	options: {
 		animations: {
@@ -97,7 +103,7 @@ $.widget( namespace.replace( "-", "." ), {
 		transitions: {},
 		unidirectional: false,
 
-		/* events */
+		/* callbacks */
 		afterBackward: null,
 		afterForward: null,
 		afterSelect: null,
