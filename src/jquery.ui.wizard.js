@@ -304,7 +304,7 @@ $.widget( namespace.replace( "-", "." ), {
 		state.branch = state.step.parent();
 		state.branchStepCount = state.branch.children( selector.step ).length;
 		state.isMovingForward = stepIndex > state.stepIndex;
-		state.stepIndexInBranch = state.branch.index( state.step );
+		state.stepIndexInBranch = state.branch.children( selector.step ).index( state.step );
 
 		var branchLabel, branchSpliceIndex, stepSpliceIndex,
 			i = 0,
@@ -423,7 +423,7 @@ $.widget( namespace.replace( "-", "." ), {
 			o = this.options;
 
 		if ( current.step ) {
-			if ( !state ||
+			if ( o.disabled || !state ||
 				state.stepIndex === current.stepIndex ||
 				!this._trigger( beforeSelect, event, state ) ||
 				( state.isMovingForward && !this._trigger( beforeForward, event, state ) ) ||
