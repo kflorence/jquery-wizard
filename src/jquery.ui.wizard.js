@@ -15,7 +15,8 @@
 
 (function( $, undefined ) {
 
-var count = 0,
+var excludesFilter,
+	count = 0,
 	selector = {},
 	className = {},
 
@@ -174,6 +175,11 @@ $.widget( namespace.replace( "ui-", "kf." ), {
 		self.elements.steps.each(function( i ) {
 			self._branchLabels[ i ] = $( this ).parent().attr( id );
 		});
+
+		// Called in the context of jQuery's .filter() method in _state()
+		self._excludesFilter = function() {
+			return !$( this ).hasClass( o.stepClasses.exclude );
+		};
 
 		// Add default transition function if one wasn't defined
 		if ( !o.transitions[ def ] ) {
@@ -359,20 +365,15 @@ $.widget( namespace.replace( "ui-", "kf." ), {
 			state.branchLabel = branchLabel;
 		}
 
-		function filter() {
-			// Filter out steps with the 'exclude' class
-			return !$( this ).hasClass( o.stepClasses.exclude );
-		}
-
 		// Steps completed: the number of steps we have visited
 		state.stepsComplete = Math.max( 0, this._find(
 			state.stepsActivated, this.elements.steps
-		).filter( filter ).length - 1 );
+		).filter( this._excludesFilter ).length - 1 );
 
 		// Steps possible: the number of steps in all of the branches we have visited
 		state.stepsPossible = Math.max( 0, this._find(
 			state.branchesActivated, this.elements.branches
-		).children( selector.step ).filter( filter ).length - 1 );
+		).children( selector.step ).filter( this._excludesFilter ).length - 1 );
 
 		$.extend( state, {
 			branchLabel: this._branchLabels[ stepIndex ],
