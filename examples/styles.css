@@ -1,4 +1,3 @@
-/* vim: set noexpandtab: */
 body {
 	background-color: #eee;
 	font-family: "Arial", "Helvetica", "Verdana", "sans-serif";
@@ -34,30 +33,15 @@ h3 span {
 }
 
 #navigation {
-	padding: 10px;
+	background-color: #fff;
+	border: #ddd 1px solid;
+	border-radius: 10px;
 	margin: 10px;
-	list-style: none;
+	padding: 10px;
 }
 
 #navigation li {
 	margin: 2px 0;
-}
-
-.navigation {
-	border-top: #ddd 1px solid;
-	margin-top: 10px;
-	padding-top: 10px;
-}
-
-.navigation ul {
-	margin: 0;
-	padding: 0;
-	list-style: none;
-}
-
-.navigation li {
-	float: left;
-	margin-right: 10px;
 }
 
 label.error {
@@ -90,6 +74,23 @@ label.error {
 
 .wizard .wizard-step {
 	margin: 10px;
+}
+
+.navigation {
+	border-top: #ddd 1px solid;
+	margin-top: 10px;
+	padding-top: 10px;
+}
+
+.navigation ul {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.navigation li {
+	float: left;
+	margin-right: 10px;
 }
 
 .clearfix:before, .clearfix:after {
