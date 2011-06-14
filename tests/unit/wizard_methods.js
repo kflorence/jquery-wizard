@@ -104,11 +104,12 @@ test( "isValidStepIndex", function() {
 });
 
 test( "length", function() {
-	expect( 3 );
+	expect( 4 );
 
-	equals( $w.wizard( "length" ), 8, "#wizard contains 8 steps" );
-	equals( $( "#wizard2" ).wizard().wizard( "length" ), 5, "#wizard2 contains 5 steps" );
-	equals( $( "#wizard3" ).wizard().wizard( "length" ), 1, "#wizard3 contains 1 step" );
+	$( ".wizard" ).each(function() {
+		ok( $( this ).wizard().wizard( "length" ),
+			"Found steps in wizard '" + $( this ).attr( "id" ) + "'" );
+	});
 });
 
 test( "select", function() {
