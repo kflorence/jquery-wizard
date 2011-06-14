@@ -1,4 +1,4 @@
-# jQuery.ui.wizard
+# jQuery.ui.wizard ( unofficial )
 
     $( "form" ).wizard( [ options ] );
 
@@ -33,48 +33,53 @@ next step in the current branch, by default.
 Options is a map of key/value pairs that can be passed into the plugin as the
 first argument upon initialization. The default values are shown below:
 
-    options: {
-        animations: {
-            show: {
-                options: {
-                    duration: 0
-                },
-                properties: {
-                    opacity: "show"
-                }
-            },
-            hide: {
-                options: {
-                    duration: 0
-                },
-                properties: {
-                    opacity: "hide"
-                }
-            }
-        },
-        backward: ".backward",
-        branches: ".branch",
-        enableSubmit: false,
-        forward: ".forward",
-        header: ":header:first",
-        initialStep: 0,
-        stateAttribute: "data-state",
-        stepClasses: {
-            current: "current",
-            exclude: "exclude",
-            stop: "stop",
-            submit: "submit",
-            unidirectional: "unidirectional"
-        },
-        steps: ".step",
-        submit: ":submit",
-        transitions: {
-            default: function( step ) {
-                return this.stepIndex( step.nextAll( selector.step ) );
-            }
-        },
-        unidirectional: false
-    }
+	options: {
+		animations: {
+			show: {
+				options: {
+					duration: 0
+				},
+				properties: {
+					opacity: "show"
+				}
+			},
+			hide: {
+				options: {
+					duration: 0
+				},
+				properties: {
+					opacity: "hide"
+				}
+			}
+		},
+		backward: ".backward",
+		branches: ".branch",
+		disabled: false,
+		enableSubmit: false,
+		forward: ".forward",
+		header: ":header:first",
+		initialStep: 0,
+		stateAttribute: "data-state",
+		stepClasses: {
+			current: "current",
+			exclude: "exclude",
+			stop: "stop",
+			submit: "submit",
+			unidirectional: "unidirectional"
+		},
+		steps: ".step",
+		submit: ":submit",
+		transitions: {},
+		unidirectional: false,
+
+		/* callbacks */
+		afterBackward: null,
+		afterForward: null,
+		afterSelect: null,
+		beforeBackward: null,
+		beforeForward: null,
+		beforeSelect: null
+	}
 
 By default the wizard will start on the first step, show and hide steps
 instantly, transition to the next step in the same branch as the current step
