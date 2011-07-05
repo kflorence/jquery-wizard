@@ -489,12 +489,11 @@ $.widget( "kf." + wizard, {
 		if ( typeof event === num ) {
 			howMany = event;
 			event = undefined;
+		} else if ( howMany === undefined ) {
+			howMany = 1;
 		}
 
-		if ( howMany === undefined ) {
-			howMany = 1;
-
-		} else if ( this._currentState.isFirstStep || typeof howMany !== num ) {
+		if ( this._currentState.isFirstStep || typeof howMany !== num ) {
 			return;
 		}
 
@@ -540,12 +539,11 @@ $.widget( "kf." + wizard, {
 			history = howMany;
 			howMany = event;
 			event = undefined;
+		} else if ( howMany === undefined ) {
+			howMany = 1;
 		}
 
-		if ( howMany === undefined ) {
-			howMany = 1;
-
-		} else if ( this._currentState.isLastStep || typeof howMany !== num ) {
+		if ( this._currentState.isLastStep || typeof howMany !== num ) {
 			return;
 		}
 
