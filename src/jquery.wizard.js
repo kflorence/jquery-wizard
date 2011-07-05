@@ -184,8 +184,7 @@ $.widget( "kf." + wizard, {
 	},
 
 	_fastForward: function( toIndex, relative, callback ) {
-		var nextIndex,
-			i = 0,
+		var i = 0,
 			self = this,
 			stepIndex = self._currentState.stepIndex,
 			stepsTaken = [ stepIndex ];
