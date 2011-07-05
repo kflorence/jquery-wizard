@@ -1,5 +1,5 @@
 /*
-jQuery.wizard v0.4.1
+jQuery.wizard v1.0.0-rc1
 https://github.com/kflorence/jquery-wizard/
 An asynchronous form wizard that supports branching.
 
