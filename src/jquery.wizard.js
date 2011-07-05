@@ -1,16 +1,15 @@
-/**
- * An asynchronous form wizard that supports branching.
- *
- * @author Kyle Florence <kyle[dot]florence[at]gmail[dot]com>
- * @website https://github.com/kflorence/jquery-wizard/
- * @version 0.4.0
- *
- * Depends:
- *  - jQuery version 1.3.2+
- *  - jQuery UI widget 1.8.0+
- *
- * Dual licensed under the MIT and GPLv2 licenses.
- */
+/*
+jQuery.wizard v1.0.0-rc1
+https://github.com/kflorence/jquery-wizard/
+An asynchronous form wizard that supports branching.
+
+Requires:
+ - jQuery 1.3.2+
+ - jQuery UI widget 1.8.0+
+
+Copyright (c) 2011 Kyle Florence
+Dual licensed under the MIT and GPLv2 licenses.
+*/
 
 (function( $, undefined ) {
 
@@ -185,10 +184,11 @@ $.widget( "kf." + wizard, {
 	},
 
 	_fastForward: function( toIndex, relative, callback ) {
-		var i = 0,
+		var nextIndex,
+			i = 0,
 			self = this,
 			stepIndex = self._currentState.stepIndex,
-			stepsTaken = [];
+			stepsTaken = [ stepIndex ];
 
 		if ( $.isFunction( relative ) ) {
 			callback = relative;
@@ -317,7 +317,7 @@ $.widget( "kf." + wizard, {
 		state.isMovingForward = stepIndex > state.stepIndex;
 		state.stepIndexInBranch = state.branch.children( selector.step ).index( state.step );
 
-		var branchLabel, branchSpliceIndex, stepSpliceIndex,
+		var branchLabel, indexOfBranch, indexOfStep,
 			i = 0,
 			l = stepsTaken.length;
 
@@ -340,17 +340,21 @@ $.widget( "kf." + wizard, {
 
 			// Going backward
 			} else if ( state.stepIndex > stepIndex ) {
-				branchSpliceIndex = $.inArray( branchLabel, state.branchesActivated ) + 1;
-				stepSpliceIndex = $.inArray( stepIndex, state.stepsActivated ) + 1;
-
-				// Don't remove the initial step
-				if ( stepSpliceIndex > 0 ) {
-					state.stepsActivated.splice( stepSpliceIndex );
-				}
+				indexOfBranch = $.inArray( branchLabel, state.branchesActivated ) + 1;
+				indexOfStep = $.inArray( stepIndex, state.stepsActivated ) + 1;
 
 				// Don't remove initial branch
-				if ( branchSpliceIndex > 0 ) {
-					state.branchesActivated.splice( branchSpliceIndex );
+				if ( indexOfBranch > 0 ) {
+					state.branchesActivated.splice( indexOfBranch,
+							// IE requires this argument
+							state.branchesActivated.length - 1 );
+				}
+
+				// Don't remove the initial step
+				if ( indexOfStep > 0 ) {
+					state.stepsActivated.splice( indexOfStep,
+							// IE requires this argument
+							state.stepsActivated.length - 1 );
 				}
 			}
 
@@ -485,12 +489,11 @@ $.widget( "kf." + wizard, {
 		if ( typeof event === num ) {
 			howMany = event;
 			event = undefined;
+		} else if ( howMany === undefined ) {
+			howMany = 1;
 		}
 
-		if ( howMany === undefined ) {
-			howMany = 1;
-
-		} else if ( this._currentState.isFirstStep || typeof howMany !== num ) {
+		if ( this._currentState.isFirstStep || typeof howMany !== num ) {
 			return;
 		}
 
@@ -536,12 +539,11 @@ $.widget( "kf." + wizard, {
 			history = howMany;
 			howMany = event;
 			event = undefined;
+		} else if ( howMany === undefined ) {
+			howMany = 1;
 		}
 
-		if ( howMany === undefined ) {
-			howMany = 1;
-
-		} else if ( this._currentState.isLastStep || typeof howMany !== num ) {
+		if ( this._currentState.isLastStep || typeof howMany !== num ) {
 			return;
 		}
 
