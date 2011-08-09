@@ -141,7 +141,7 @@ $.widget( "kf." + wizard, {
 		if ( !$stepsWrapper.attr( id ) ) {
 
 			// stepsWrapper must have an ID as it also functions as the default branch
-			$stepsWrapper.attr( id, wizard + "-" + ++count );
+			$stepsWrapper.attr( id, wizard + "-" + ( ++count ) );
 		}
 
 		self.elements.forward.click(function( event ) {
@@ -184,8 +184,7 @@ $.widget( "kf." + wizard, {
 	},
 
 	_fastForward: function( toIndex, relative, callback ) {
-		var nextIndex,
-			i = 0,
+		var i = 0,
 			self = this,
 			stepIndex = self._currentState.stepIndex,
 			stepsTaken = [ stepIndex ];

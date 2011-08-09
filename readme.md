@@ -231,7 +231,7 @@ any relevent information you may need.
     *   **branch** _String_  
         The ID of a branch in the wizard.
 
-*   **branches( [ branch ] )** returns _jQuery_
+*   **branches( [ branch ] )** returns _jQuery_  
     Returns several branches in the wizard. If no arguments are provided, it
     will return all of the branches in the wizard.
 
@@ -460,7 +460,20 @@ values are outlined below.
 
 ## Compabitility
 
-Testing is still underway.
+Tested and verified to work on the following browsers:
+
+*   **[Internet Explorer](http://windows.microsoft.com/en-US/internet-explorer/products/ie/home)**  
+    Versions 6.0 and higher.
+
+*   **[Mozilla Firefox](http://www.mozilla.com/en-US/firefox/new/)**  
+    Versions 3.0 and higher.
+
+*   **[Google Chrome](http://www.google.com/chrome/)**  
+    Versions 7.0 and higher.
+
+Found a bug? [Submit an issue](https://github.com/kflorence/jquery-wizard/issues).
+Tested in another browser? [Send me a message](https://github.com/inbox/new/kflorence) or
+fork this project and add the browser to this readme.
 
 ## Integration
 
