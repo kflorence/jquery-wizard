@@ -76,11 +76,18 @@ test( "{ initialStep: string }", function() {
 });
 
 test( "{ initialStep: array }", function() {
-	expect( 1 );
+	expect( 2 );
 
 	equals( $w.wizard({
 			initialStep: [ 1, "branch-1" ]
 		}).wizard( "stepIndex" ), 2 );
+
+	$w.wizard( "destroy" );
+
+	// Start on step 1 but maintain history of how we got there
+	same( $w.wizard({
+			initialStep: [ 1, [ 0, 1 ] ]
+		}).wizard( "state" ).stepsActivated, [ 0, 1 ] );
 });
 
 test( "{ stateAttribute: string }", function() {

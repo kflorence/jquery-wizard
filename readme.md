@@ -27,7 +27,6 @@ name of a state, the index of a step or the name of a branch. Steps without any
 state attached to them will perform the default action, which is to go to the
 next step in the current branch, by default.
 
-
 ## Options
 
 Options is a map of key/value pairs that can be passed into the plugin as the
@@ -114,8 +113,11 @@ if no state attribute is present and allow movement forwards and backwards.
 *   **header** _String_  
     A selector string used to locate the header of the wizard.
 
-*   **initialStep** _String_, _Number_  
-    Which step to display after the wizard initializes.
+*   **initialStep** _String_, _Number_, _Array_  
+    Which step to display after the wizard initializes. Accepts a string
+    representing a step or branch ID, a number representing a step index,
+    a jQuery object or DOM element representing a step or branch, or an
+    array of arguments to be passed to the `select()` method.
 
 *   **stateAttribute** _String_  
     The attribute, applied to steps, that contains the name of a state.
@@ -298,13 +300,16 @@ any relevent information you may need.
     *   **relative** _Boolean_  
         If true, the step argument becomes an integer representing the number
         of steps to move forwards or backwards relative to the current step.
+        This parameter may be omitted even if further arguments are needed.
 
-    *   **history** _Boolean_  
+    *   **history** _Boolean_, _Array_  
         Whether or not to track the movements between the current step and the
         destination step. If set to false, the history will not be kept. This
         means that when hitting the back button on the selected step, the user
         will be taken directly back to the step they were on beforehand instead
-        of visiting any steps in between.
+        of visiting any steps in between. You can specify which steps will be
+        included in the history yourself by passing an array of step indexes
+        that will override whatever steps the plugin actually takes.
 
 *   **state( [ step, branch, stepsTaken ] )** returns _Object_  
     Returns an object containing the state of the wizard at a certain step, or
