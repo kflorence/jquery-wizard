@@ -1,5 +1,5 @@
 /*
-jQuery.wizard v1.0.0-rc1
+jQuery.wizard v1.0.0-rc2
 https://github.com/kflorence/jquery-wizard/
 An asynchronous form wizard that supports branching.
 
@@ -180,7 +180,8 @@ $.widget( "kf." + wizard, {
 			}
 		}
 
-		self.select( o.initialStep );
+		// Select initial step
+		self.select.apply( self, arr( o.initialStep ) );
 	},
 
 	_fastForward: function( toIndex, relative, callback ) {
@@ -273,14 +274,14 @@ $.widget( "kf." + wizard, {
 			branch = undefined;
 		}
 
-		// Need an explicit 'false' to cancel history tracking
-		history = history === false ? false : true;
+		function move( stepIndex, stepsTaken ) {
+			callback.call( self, stepIndex, $.isArray( history ) ?
+				history : history !== false ? stepsTaken : undefined );
+		}
 
 		if ( relative === true ) {
 			if ( step > 0 ) {
-				self._fastForward( step, relative, function( stepIndex, stepsTaken ) {
-					callback.call( self, stepIndex, history ? stepsTaken : undefined );
-				});
+				self._fastForward( step, relative, move );
 
 			} else {
 				callback.call( self, current.stepsActivated[
@@ -290,11 +291,11 @@ $.widget( "kf." + wizard, {
 
 		// Don't attempt to move to invalid steps
 		} else if ( ( step = self.stepIndex( step, branch ) ) !== -1 ) {
-			if ( history && step > current.stepIndex ) {
-				self._fastForward( step, callback );
+			if ( step > current.stepIndex ) {
+				self._fastForward( step, move );
 
 			} else {
-				callback.call( self, step );
+				move.call( self, step );
 			}
 		}
 	},
@@ -589,6 +590,11 @@ $.widget( "kf." + wizard, {
 		} else if ( typeof branch === bool ) {
 			history = relative;
 			relative = branch;
+			branch = undefined;
+
+		// args: step, history
+		} else if ( $.isArray( branch ) ) {
+			history = branch;
 			branch = undefined;
 		}
 

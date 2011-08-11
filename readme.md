@@ -27,7 +27,6 @@ name of a state, the index of a step or the name of a branch. Steps without any
 state attached to them will perform the default action, which is to go to the
 next step in the current branch, by default.
 
-
 ## Options
 
 Options is a map of key/value pairs that can be passed into the plugin as the
@@ -114,8 +113,11 @@ if no state attribute is present and allow movement forwards and backwards.
 *   **header** _String_  
     A selector string used to locate the header of the wizard.
 
-*   **initialStep** _String_, _Number_  
-    Which step to display after the wizard initializes.
+*   **initialStep** _String_, _Number_, _Array_  
+    Which step to display after the wizard initializes. Accepts a string
+    representing a step or branch ID, a number representing a step index,
+    a jQuery object or DOM element representing a step or branch, or an
+    array of arguments to be passed to the `select()` method.
 
 *   **stateAttribute** _String_  
     The attribute, applied to steps, that contains the name of a state.
@@ -213,7 +215,7 @@ Every event is called with the same two arguments:
 The wizard comes with plenty of public methods to help you navigate and get at
 any relevent information you may need.
 
-*   **backward( [ event, howMany ] )**  
+*   **backward( [ event, howMany ] )** returns _jQuery_  
     Step backward through the wizard.
 
     *   **event** _Event_  
@@ -243,7 +245,7 @@ any relevent information you may need.
     Returns all of the activated branches in the wizard. An activated branch
     is defined as any branch containing a step that has been visited.
 
-*   **destroy()**  
+*   **destroy()** returns _jQuery_  
     Completely remove the wizard functionality from the element it was attached
     to. This basically reverts the element to the state it was before the
     wizard was applied to it.
@@ -251,7 +253,7 @@ any relevent information you may need.
 *   **form()** returns _jQuery_  
     Returns the form associated with the wizard.
 
-*   **forward( [ event, howMany ] )**  
+*   **forward( [ event, howMany ] )** returns _jQuery_  
     Step forward through the wizard.
 
     *   **event** _Event_  
@@ -279,7 +281,7 @@ any relevent information you may need.
 *   **length()** returns _Number_  
     Returns the number of steps in the wizard.
 
-*   **select( [ event, ] step [, branch, relative, history ] )**  
+*   **select( [ event, ] step [, branch, relative, history ] )** returns _jQuery_  
     Selects a step within the wizard.
 
     *   **event** _Event_  
@@ -298,18 +300,22 @@ any relevent information you may need.
     *   **relative** _Boolean_  
         If true, the step argument becomes an integer representing the number
         of steps to move forwards or backwards relative to the current step.
+        This parameter may be omitted even if further arguments are needed.
 
-    *   **history** _Boolean_  
+    *   **history** _Boolean_, _Array_  
         Whether or not to track the movements between the current step and the
         destination step. If set to false, the history will not be kept. This
         means that when hitting the back button on the selected step, the user
         will be taken directly back to the step they were on beforehand instead
-        of visiting any steps in between.
+        of visiting any steps in between. You can specify which steps will be
+        included in the history yourself by passing an array of step indexes
+        that will override whatever steps the plugin actually takes.
 
 *   **state( [ step, branch, stepsTaken ] )** returns _Object_  
-    Returns an object containing the state of the wizard at a certain step. If
-    no arguments are provided, returns the current state of the wizard. See the
-    state section for further information.
+    Returns an object containing the state of the wizard at a certain step, or
+    null if the step could not be found. If no arguments are provided, returns
+    the current state of the wizard. See the state section for further
+    information.
 
     *   **step** _String_, _Number_, _jQuery_, _Element_  
         A step in the wizard. Can be an element ID, step index, jQuery object
@@ -338,9 +344,10 @@ any relevent information you may need.
         step by step index relative to a branch. This parameter may be omitted
         even if further arguments are needed.
 
-*   **stepIndex( step, [ branch, relative ] )** returns _Number_  
-    Given a step ID, jQuery object or DOM element representing a step, returns
-    the index for that step, or -1 if the step could not be found.
+*   **stepIndex( [ step, branch, relative ] )** returns _Number_  
+    Returns the index of a step in the wizard, or -1 of the step could not be
+    found. If no arguments are provided, it will return the index of the
+    currently selected step in the wizard.
 
     *   **branch** _String_  
         The ID of the branch that contains the step. Useful of searching for a
@@ -362,7 +369,7 @@ any relevent information you may need.
     Returns all of the activated steps in the wizard. An activated step is
     defined as one that the user has visited.
 
-*   **submit()**  
+*   **submit()** returns _jQuery_  
     Submits the form attached to the wizard.
 
 ## State
