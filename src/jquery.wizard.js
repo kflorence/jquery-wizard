@@ -56,7 +56,7 @@ $.each( "branch form header step wrapper".split( " " ), function() {
 });
 
 $.widget( "kf." + wizard, {
-	version: "@VERSION",
+	version: "1.0.0-rc2",
 	options: {
 		animations: {
 			show: {
