@@ -1,0 +1,40 @@
+{
+    "name": "jquery.wizard",
+    "version": "1.0.0-rc2",
+    "title": "jQuery.wizard()",
+    "author": {
+        "name": "Kyle Florence",
+        "url": "https://github.com/kflorence/"
+    },
+    "licenses": [
+        {
+            "type": "MIT",
+            "url": "https://raw.github.com/kflorence/jquery-wizard/master/license-mit"
+        },
+        {
+            "type": "GPL-2.0",
+            "url": "https://raw.github.com/kflorence/jquery-wizard/master/license-gpl"
+        }
+    ],
+    "dependencies": {
+        "jquery": ">=1.3.2",
+		"jquery.ui.core": ">=1.8.0",
+		"jquery.ui.widget": ">=1.8.0"
+    },
+    "description": "This plugin turns a standard HTML form into a wizard by breaking it into a series of well-defined steps. The purpose of these steps is to better group related inputs, preventing the user from becoming overwhelmed at the size or complexity of a form and helping them to better understand the structure of an unfamiliar form.",
+    "keywords": [
+        "form",
+        "wizard",
+        "asynchronous",
+        "branching",
+		"steps",
+		"finite-state machine",
+		"transitions",
+		"stateful"
+    ],
+	"demo": "http://kflorence.github.com/jquery-wizard/",
+    "homepage": "https://github.com/kflorence/jquery-wizard",
+    "files": [
+		"src/jquery.wizard.js"
+    ]
+}
