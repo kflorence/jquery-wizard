@@ -65,7 +65,11 @@
 						var inputs = $(this).wizard('state').step.find(':input');
 						return !inputs.length || !!inputs.valid();
 					}
-				}).wizard('form').validate({
+				}).wizard('form').submit(function( event ) {
+					event.preventDefault();
+					alert('Form submitted!');
+
+				}).validate({
 					errorPlacement: function(error, element) { 
 						if ( element.is(':radio') || element.is(':checkbox') ) {
 							error.insertBefore( element.next() );
