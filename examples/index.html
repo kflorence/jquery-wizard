@@ -57,9 +57,23 @@
 		<!-- Demo -->
 		<script type="text/javascript">
 			jQuery(function($) {
-				// Example 1: Basic wizard
+				// Example 1: Basic wizard with validation
 				$("#example-1").wizard({
-					stepsWrapper: "#wrapped", submit: ".submit"
+					stepsWrapper: "#wrapped",
+					submit: ".submit",
+					beforeSelect: function( event, state ) {
+						var inputs = $(this).wizard('state').step.find(':input');
+						return !inputs.length || !!inputs.valid();
+					}
+				}).wizard('form').validate({
+					errorPlacement: function(error, element) { 
+						if ( element.is(':radio') || element.is(':checkbox') ) {
+							error.insertBefore( element.next() );
+
+						} else { 
+							error.insertAfter( element );
+						}
+					}
 				});
 
 				// Example 2: Basic wizard with progress bar
@@ -91,25 +105,37 @@
 				$("#example-4").wizard();
 			});
 		</script>
+
+		<style type="text/css">
+			label.error {
+				position: relative;
+				
+			}
+		</style>
 	</head>
 	<body>
 		<h1><a href="../" title="jQuery.wizard">jQuery.wizard</a></h1>
 
 		<div id="wrapper">
 			<div id="example-1">
-				<h2>Basic Wizard</h2>
+				<h2>Basic Wizard With Validation</h2>
 
 				<form name="example-1" id="wrapped">
 					<div class="step">
-						<p>This is a basic wizard. It contains three steps. You are on step one.</p>
+						What is your first name?<br />
+						<input type="text" name="firstname" class="required" /><br />
+						What is your last name?<br />
+						<input type="text" name="lastname" class="required" /><br />
 					</div>
 
 					<div class="step">
-						<p>Now you're on step two. One step to go!</p>
+						What is your gender?<br />
+						<input type="radio" name="gender" value="male" class="required" />Male<br />
+						<input type="radio" name="gender" value="female" class="required" />Female<br />
 					</div>
 
 					<div class="submit step">
-						<p>This is step three, the last step of the wizard. All done!</p>
+						<p>Thanks!</p>
 					</div>
 
 					<div class="navigation">
