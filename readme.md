@@ -8,7 +8,7 @@ related inputs, preventing the user from becoming overwhelmed at the size or
 complexity of a form and helping them to better understand the structure of
 an unfamiliar form.
 
-### Structure
+## Structure
 
 The basic stucture of the wizard revolves around steps and branches, the
 latter being optional. A simple, linear form may only require one branch that
@@ -16,16 +16,48 @@ contains all of the steps, whereas a complex form may require the use of
 several branches, or even nested branches. The number of steps and branches in
 a form is thus left entirely to the developer.
 
-### Navigation
+## Navigation
 
 The wizard employs an asynchronous
 [finite-state machine](http://en.wikipedia.org/wiki/Finite-state_machine) that
 determines how to navigate through itself. This is accomplished by defining
 states within the wizard, which are attached to steps, along with their
-corresponding actions, which are user-defined functions that should return the
-name of a state, the index of a step or the name of a branch. Steps without any
-state attached to them will perform the default action, which is to go to the
-next step in the current branch, by default.
+corresponding action. Steps without states attached will perform the default
+action of going to the next step in the current branch.
+
+### States
+
+    <div class="step" data-state="state">
+
+States are attached to steps via the state attribute, as defined by 
+`options.stateAttribute`. States can refer to the name of a transition
+function, the index of a step or the name of the branch.
+
+### Transitions
+
+    $( "form" ).wizard({
+        transitions: {
+            gender: function( step, action ) {
+                return step.find( "[name=gender]" ).val();
+            }
+        }
+    });
+
+Transitions act as a bridge between one state and another. They can be used
+to allow custom logic to determine where to go next and should ultimately 
+return a step index or branch name in the wizard.
+
+#### Arguments
+
+Transitions are called with the wizard object as the context and these
+arguments:
+
+*   **step** _jQuery_  
+    The current step in the wizard.
+
+*   **action** _Function_  
+    The action function should be used to pass the result back to the wizard
+    in the case that your transition function is asynchronous.
 
 ## Options
 
@@ -159,7 +191,6 @@ if no state attribute is present and allow movement forwards and backwards.
     Whether or not this wizard should be unidirectional; that is allowing only
     forward movement.
 
-
 ## Events
 
     $( "form" )
@@ -195,9 +226,9 @@ can be bound to the wizard at any time using the format _wizardeventname_
     Triggered before the wizard attempts to move in any direction. Returning
     false inside of this method will prevent the move.
 
-### Arguments
+#### Arguments
 
-Every event is called with the same two arguments:
+Events are called with the wizard element as the context and these arguments:
 
 *   **event** _Object_  
     The [jQuery.Event](http://api.jquery.com/category/events/event-object/)
@@ -456,7 +487,6 @@ values are outlined below.
 *   **stepsRemaining** _Number_  
     The _estimated_ difference between _stepsComplete_ and _stepsPossible_.
 
-
 ## Requirements
 
 *   **[jQuery](http://jquery.com/)**  
@@ -500,5 +530,5 @@ This plugin has been designed to integrate well with the following plugins:
 
 ## License
 
-Copyright (c) 2011 Kyle Florence  
+Copyright (c) 2012 Kyle Florence  
 Dual licensed under the MIT and GPLv2 licenses.

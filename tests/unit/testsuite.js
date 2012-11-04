@@ -103,4 +103,4 @@ window.domEqual = function( selector, modifier, message ) {
 	QUnit.push( QUnit.equiv(actual, expected), actual, expected, message );
 }
 
-}());
+})();

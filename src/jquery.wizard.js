@@ -489,7 +489,10 @@ $.widget( "kf." + wizard, {
 		if ( typeof event === num ) {
 			howMany = event;
 			event = undefined;
-		} else if ( howMany === undefined ) {
+
+		}
+
+		if ( howMany === undefined ) {
 			howMany = 1;
 		}
 
@@ -539,7 +542,10 @@ $.widget( "kf." + wizard, {
 			history = howMany;
 			howMany = event;
 			event = undefined;
-		} else if ( howMany === undefined ) {
+
+		}
+
+		if ( howMany === undefined ) {
 			howMany = 1;
 		}
 

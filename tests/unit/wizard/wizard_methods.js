@@ -104,11 +104,15 @@ test( "isValidStepIndex", function() {
 });
 
 test( "length", function() {
-	expect( 4 );
+	var $wizard = $( ".wizard" );
 
-	$( ".wizard" ).each(function() {
-		ok( $( this ).wizard().wizard( "length" ),
-			"Found steps in wizard '" + $( this ).attr( "id" ) + "'" );
+	expect( $wizard.length );
+
+	$wizard.each(function() {
+		var $this = $( this );
+
+		ok( $this.wizard().wizard( "length" ),
+			"Found steps in wizard '" + $this.attr( "id" ) + "'" );
 	});
 });
 
