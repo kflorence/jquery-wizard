@@ -21,13 +21,15 @@ test( "widget method", function() {
 });
 
 test( "widget form", function() {
-	expect( 4 );
+	var $wizard = $( ".wizard" );
 
-	$( ".wizard" ).each(function() {
-		var $wizard = $( this );
+	expect( $wizard.length );
 
-		ok( $wizard.wizard( "form" ).length, "Form found for wizard: #"
-			+ $wizard.attr( "id" ) );
+	$wizard.each(function() {
+		var $this = $( this );
+
+		ok( $this.wizard( "form" ).length,
+			"Form found for wizard: #" + $this.attr( "id" ) );
 	});
 });
 
