@@ -3,6 +3,8 @@
  */
 (function( $ ) {
 
+var wizardDataName = $.isFunction($.ui.isOver) ? "wizard" : "kf-wizard";
+
 module( "wizard: core" );
 
 test( "widget method - empty collection", function() {
@@ -15,12 +17,14 @@ test( "widget method - empty collection", function() {
 test( "widget method", function() {
 	expect( 1 );
 
-	var $wizard = $( "#wizard" ).wizard().wizard( "widget" );
+	var $wizard = $( "#wizard" ).wizard();
+	$wizard = $wizard.wizard( "widget" );
 
-	same( $( "#wizard" )[0], $wizard[0] );
+	deepEqual( $( "#wizard" )[0], $wizard[0] );
 });
 
 test( "widget form", function() {
+	$( ".wizard" ).wizard();
 	var $wizard = $( ".wizard" );
 
 	expect( $wizard.length );
@@ -59,13 +63,13 @@ test( "wizard disabled", function() {
 		initialStep: 1
 	});
 
-	equals( $wizard.wizard( "forward" ).wizard( "stepIndex" ), 1,
+	equal( $wizard.wizard( "forward" ).wizard( "stepIndex" ), 1,
 		"Forward was cancelled because wizard is disabled" );
 
-	equals( $wizard.wizard( "backward" ).wizard( "stepIndex" ), 1,
+	equal( $wizard.wizard( "backward" ).wizard( "stepIndex" ), 1,
 		"Backward was cancelled because wizard is disabled" );
 
-	equals( $wizard.wizard( "select", 2 ).wizard( "stepIndex" ), 1,
+	equal( $wizard.wizard( "select", 2 ).wizard( "stepIndex" ), 1,
 		"Select was cancelled because wizard is disabled" );
 });
 
@@ -82,7 +86,7 @@ test( "wizard update", function() {
 				unidirectional: "wizardNoBackward"
 			}
 		}),
-		wizard = $wizard.data( "wizard" );
+		wizard = $wizard.data( wizardDataName );
 
 	ok( wizard.elements.backward.is( ":disabled" ),
 		"Backward button disabled on first step" );

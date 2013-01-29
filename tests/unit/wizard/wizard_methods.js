@@ -4,6 +4,8 @@
 
 (function( $ ) {
 
+var wizardDataName = $.isFunction($.ui.isOver) ? "wizard" : "kf-wizard";
+
 module( "wizard: methods", {
 	setup: function() {
 		$w = $( "#wizard" ).wizard();
@@ -15,67 +17,67 @@ test( "backward", function() {
 
 	$w.wizard( "select", -1 );
 
-	equals( $w.wizard( "backward" ).wizard( "stepIndex" ), 6, "Backward" );
-	equals( $w.wizard( "backward", $.Event( "click" ) ).wizard( "stepIndex" ), 5,
+	equal( $w.wizard( "backward" ).wizard( "stepIndex" ), 6, "Backward" );
+	equal( $w.wizard( "backward", $.Event( "click" ) ).wizard( "stepIndex" ), 5,
 		"Backward, event as first argument" );
-	equals( $w.wizard( "backward", 2 ).wizard( "stepIndex" ), 3, "Backward, multiple steps" );
-	equals( $w.wizard( "backward", 99 ).wizard( "stepIndex" ), 0,
+	equal( $w.wizard( "backward", 2 ).wizard( "stepIndex" ), 3, "Backward, multiple steps" );
+	equal( $w.wizard( "backward", 99 ).wizard( "stepIndex" ), 0,
 		"Backward, multiple steps, normalized to first step" );
 });
 
 test( "branch", function() {
 	expect( 3 );
 
-	equals( $w.wizard( "branch" ).attr( "id" ), "form", "Current branch" );
-	equals( $w.wizard( "branch", "branch-1" ).attr( "id" ), "branch-1",
+	equal( $w.wizard( "branch" ).attr( "id" ), "form", "Current branch" );
+	equal( $w.wizard( "branch", "branch-1" ).attr( "id" ), "branch-1",
 		"Find a specific branch via branch label" );
-	equals( $w.wizard( "branch", 0 ).attr( "id" ), "form",
+	equal( $w.wizard( "branch", 0 ).attr( "id" ), "form",
 		"Find a specific branch via branch index" );
 });
 
 test( "branches", function() {
 	expect( 2 );
 
-	equals( $w.wizard( "branches" ).length, 4, "Wizard has 4 branches" );
-	equals( $w.wizard( "branches", "branch-1" ).length, 1, "Found 1 branch inside 'branch-1'" );
+	equal( $w.wizard( "branches" ).length, 4, "Wizard has 4 branches" );
+	equal( $w.wizard( "branches", "branch-1" ).length, 1, "Found 1 branch inside 'branch-1'" );
 });
 
 test( "branchesActivated", function() {
 	expect( 3 );
 
-	equals( $w.wizard( "branchesActivated" ).length, 1, "One branch has been activated" );
-	equals( $w.wizard( "forward" ).wizard( "branchesActivated" ).length, 2,
+	equal( $w.wizard( "branchesActivated" ).length, 1, "One branch has been activated" );
+	equal( $w.wizard( "forward" ).wizard( "branchesActivated" ).length, 2,
 		"Two branches have been activated" );
-	equals( $w.wizard( "select", -1 ).wizard( "branchesActivated" ).length, 4,
+	equal( $w.wizard( "select", -1 ).wizard( "branchesActivated" ).length, 4,
 		"All branches have been activated" );
 });
 
 test( "destroy", function() {
 	expect( 2 );
 
-	ok( $w.hasClass( "wizard" ) && $w.data( "wizard" ), "Wizard has been created" );
-	ok( !$w.wizard( "destroy" ).hasClass( "wizard" ) && !$w.data( "wizard" ),
+	ok( $w.hasClass( "wizard" ) && $w.data( wizardDataName ), "Wizard has been created" );
+	ok( !$w.wizard( "destroy" ).hasClass( "wizard" ) && !$w.data( wizardDataName ),
 		"Wizard has been destroyed" );
 });
 
 test( "form", function() {
 	expect( 3 );
 
-	equals( $w.wizard( "form" )[0].tagName, "FORM", "#wizard has a form" );
-	equals( $( "#wizard2" ).wizard().wizard( "form" )[0].tagName, "FORM", "#wizard2 has a form" );
-	equals( $( "#wizard3" ).wizard().wizard( "form" )[0].tagName, "FORM", "#wizard3 has a form" );
+	equal( $w.wizard( "form" )[0].tagName, "FORM", "#wizard has a form" );
+	equal( $( "#wizard2" ).wizard().wizard( "form" )[0].tagName, "FORM", "#wizard2 has a form" );
+	equal( $( "#wizard3" ).wizard().wizard( "form" )[0].tagName, "FORM", "#wizard3 has a form" );
 });
 
 test( "forward", function() {
 	expect( 5 );
 
-	equals( $w.wizard( "forward" ).wizard( "stepIndex" ), 1, "Forward" );
-	equals( $w.wizard( "forward", $.Event( "click" ) ).wizard( "stepIndex" ), 2,
+	equal( $w.wizard( "forward" ).wizard( "stepIndex" ), 1, "Forward" );
+	equal( $w.wizard( "forward", $.Event( "click" ) ).wizard( "stepIndex" ), 2,
 		"Forward, event as first argument" );
-	equals( $w.wizard( "forward", 2 ).wizard( "stepIndex" ), 4, "Forward, multiple steps" );
-	equals( $w.wizard( "forward", 99 ).wizard( "stepIndex" ), 7,
+	equal( $w.wizard( "forward", 2 ).wizard( "stepIndex" ), 4, "Forward, multiple steps" );
+	equal( $w.wizard( "forward", 99 ).wizard( "stepIndex" ), 7,
 		"Forward, multiple steps, normalized to last step" );
-	equals( $w.wizard( "select", 0 )
+	equal( $w.wizard( "select", 0 )
 		.wizard( "forward", 3, false )
 		.wizard( "stepsActivated" ).length, 2,
 		"Forward, multiple steps, no history" );
@@ -103,7 +105,7 @@ test( "isValidStepIndex", function() {
 	ok( !$w.wizard( "isValidStepIndex", "string" ), "Invalid because index is not a number" );
 });
 
-test( "length", function() {
+test( "stepCount", function() {
 	var $wizard = $( ".wizard" );
 
 	expect( $wizard.length );
@@ -111,7 +113,7 @@ test( "length", function() {
 	$wizard.each(function() {
 		var $this = $( this );
 
-		ok( $this.wizard().wizard( "length" ),
+		ok( $this.wizard().wizard( "stepCount" ) > 0,
 			"Found steps in wizard '" + $this.attr( "id" ) + "'" );
 	});
 });
@@ -119,27 +121,27 @@ test( "length", function() {
 test( "select", function() {
 	expect( 7 );
 
-	equals( $w.wizard( "select", 1 ).wizard( "stepIndex" ), 1, "Select step by index" );
-	equals( $w.wizard( "select", -1 ).wizard( "stepIndex" ), 7, "Select step with negative index" );
-	equals( $w.wizard( "select", "finish" ).wizard( "stepIndex" ), 7, "Select a step by ID" );
-	equals( $w.wizard( "select", "branch-1" ).wizard( "stepIndex" ), 1,
+	equal( $w.wizard( "select", 1 ).wizard( "stepIndex" ), 1, "Select step by index" );
+	equal( $w.wizard( "select", -1 ).wizard( "stepIndex" ), 7, "Select step with negative index" );
+	equal( $w.wizard( "select", "finish" ).wizard( "stepIndex" ), 7, "Select a step by ID" );
+	equal( $w.wizard( "select", "branch-1" ).wizard( "stepIndex" ), 1,
 		"Select a step by branch ID" );
-	equals( $w.wizard( "select", "branch-1", 1 ).wizard( "stepIndex" ), 2,
+	equal( $w.wizard( "select", "branch-1", 1 ).wizard( "stepIndex" ), 2,
 		"Select a step relative to a branch" );
-	equals( $w.wizard( "select", -2, true ).wizard( "stepIndex" ), 0,
+	equal( $w.wizard( "select", -2, true ).wizard( "stepIndex" ), 0,
 		"Select a step relative to the current step" );
-	equals( $w.wizard( "select", 2, true, false ).wizard( "stepsActivated" ).length, 2,
+	equal( $w.wizard( "select", 2, true, false ).wizard( "stepsActivated" ).length, 2,
 		"Select a step without keeping history" );
 });
 
 test( "state", function() {
 	expect( 4 );
 
-	equals( $w.wizard( "state" ).stepIndex, 0, "Current state" );
-	equals( $w.wizard( "state", 1 ).stepIndex, 1, "State for step index 1" );
-	equals( $w.wizard( "state", 2 ).stepsActivated.length, 2,
+	equal( $w.wizard( "state" ).stepIndex, 0, "Current state" );
+	equal( $w.wizard( "state", 1 ).stepIndex, 1, "State for step index 1" );
+	equal( $w.wizard( "state", 2 ).stepsActivated.length, 2,
 		"State for step index 2, without history" );
-	equals( $w.wizard( "state", 2, [ 0, 1, 2 ] ).stepsActivated.length, 3,
+	equal( $w.wizard( "state", 2, [ 0, 1, 2 ] ).stepsActivated.length, 3,
 		"State for step index 2, with history" );
 });
 
@@ -167,29 +169,29 @@ test( "step", function() {
 test( "stepIndex", function() {
 	expect( 4 );
 
-	equals( $w.wizard( "stepIndex" ), 0, "Index of current step" );
-	equals( $w.wizard( "stepIndex", 1 ), 1, "Index of step 1" );
-	equals( $w.wizard( "stepIndex", "branch-1", 1 ), 2,
+	equal( $w.wizard( "stepIndex" ), 0, "Index of current step" );
+	equal( $w.wizard( "stepIndex", 1 ), 1, "Index of step 1" );
+	equal( $w.wizard( "stepIndex", "branch-1", 1 ), 2,
 		"The index of the second step in branch 'branch-1'" );
-	equals( $w.wizard( "stepIndex", "branch-1", 1, true ), 1,
+	equal( $w.wizard( "stepIndex", "branch-1", 1, true ), 1,
 		"The index of the second step in branch 'branch-1' relative to the branch" );
 });
 
 test( "steps", function() {
 	expect( 2 );
 
-	equals( $w.wizard( "steps" ).length, 8, "Get all of the steps in the wizard" );
-	equals( $w.wizard( "steps", "branch-1" ).length, 2,
+	equal( $w.wizard( "steps" ).length, 8, "Get all of the steps in the wizard" );
+	equal( $w.wizard( "steps", "branch-1" ).length, 2,
 		"Get all of the steps in the 'branch-1' branch" );
 });
 
 test( "stepsActivated", function() {
 	expect( 3 );
 
-	equals( $w.wizard( "stepsActivated" ).length, 1, "One step has been activated" );
-	equals( $w.wizard( "forward" ).wizard( "stepsActivated" ).length, 2,
+	equal( $w.wizard( "stepsActivated" ).length, 1, "One step has been activated" );
+	equal( $w.wizard( "forward" ).wizard( "stepsActivated" ).length, 2,
 		"Two steps have been activated" );
-	equals( $w.wizard( "select", -1 ).wizard( "stepsActivated" ).length, 8,
+	equal( $w.wizard( "select", -1 ).wizard( "stepsActivated" ).length, 8,
 		"All steps have been activated" );
 });
 
