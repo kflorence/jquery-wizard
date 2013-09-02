@@ -309,9 +309,6 @@ any relevent information you may need.
     *   **stepIndex** _Number_  
         An integer representing the index of a step in the wizard.
 
-*   **stepCount()** returns _Number_  
-    Returns the number of steps in the wizard.
-
 *   **select( [ event, ] step [, branch, relative, history ] )** returns _jQuery_  
     Selects a step within the wizard.
 
@@ -374,6 +371,9 @@ any relevent information you may need.
         The ID of the branch that contains the step. Useful of searching for a
         step by step index relative to a branch. This parameter may be omitted
         even if further arguments are needed.
+
+*   **stepCount()** returns _Number_  
+    Returns the number of steps in the wizard.
 
 *   **stepIndex( [ step, branch, relative ] )** returns _Number_  
     Returns the index of a step in the wizard, or -1 of the step could not be
@@ -507,6 +507,11 @@ Tested and verified to work on the following browsers:
 
 *   **[Google Chrome](http://www.google.com/chrome/)**  
     Versions 7.0 and higher.
+
+## Deprecations
+
+*   The **length()** method was renamed to **stepCount()** in version _1.0.0-rc3_
+    due to compatibility issues with jQuery UI version 1.10.0 and higher.
 
 Found a bug? [Submit an issue](https://github.com/kflorence/jquery-wizard/issues).
 Tested in another browser? [Send me a message](https://github.com/inbox/new/kflorence) or
