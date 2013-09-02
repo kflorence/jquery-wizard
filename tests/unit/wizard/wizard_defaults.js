@@ -44,20 +44,19 @@
 			transitions: {},
 			unidirectional: false,
 
-			/* events */
+			/* callbacks */
 			afterBackward: null,
+			afterDestroy: null,
 			afterForward: null,
 			afterSelect: null,
 			beforeBackward: null,
+			beforeDestroy: null,
 			beforeForward: null,
-			beforeSelect: null
+			beforeSelect: null,
+			create: null
 		}
 	};
 
-	if (!$.isFunction($.ui.isOver)) {
-		defaultsToTest.defaults.create = null;
-	}
-
-	commonWidgetTests( "wizard", defaultsToTest);
+	commonWidgetTests( "wizard", defaultsToTest );
 
 })( jQuery );
