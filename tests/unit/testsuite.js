@@ -62,17 +62,17 @@ window.commonWidgetTests = function( widget, settings ) {
 	test( "version", function() {
 		ok( "version" in $[ namespace ][ widget ].prototype, "version property exists" );
 	});
-}
+};
 
 /*
  * Experimental assertion for comparing DOM objects.
- * 
+ *
  * Serializes an element and some attributes and it's children if any, otherwise the text.
  * Then compares the result using deepEqual.
  */
 window.domEqual = function( selector, modifier, message ) {
 	var attributes = ["class", "role", "id", "tabIndex", "aria-activedescendant"];
-	
+
 	function extract(value) {
 		if (!value || !value.length) {
 			QUnit.push( false, actual, expected, "domEqual failed, can't extract " + selector + ", message was: " + message );
@@ -96,9 +96,9 @@ window.domEqual = function( selector, modifier, message ) {
 	}
 	var expected = extract($(selector));
 	modifier($(selector));
-	
+
 	var actual = extract($(selector));
 	QUnit.push( QUnit.equiv(actual, expected), actual, expected, message );
-}
+};
 
 })();

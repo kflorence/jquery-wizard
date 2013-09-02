@@ -1,5 +1,5 @@
 /*
-jQuery.wizard v1.0.0-rc3
+jQuery.wizard v1.0.0
 https://github.com/kflorence/jquery-wizard/
 An asynchronous form wizard that supports branching.
 
@@ -43,9 +43,11 @@ var excludesFilter,
 
 	// Events
 	afterBackward = "afterBackward",
+	afterDestroy = "afterDestroy",
 	afterForward = "afterForward",
 	afterSelect = "afterSelect",
 	beforeBackward = "beforeBackward",
+	beforeDestroy = "beforeDestroy",
 	beforeForward = "beforeForward",
 	beforeSelect = "beforeSelect",
 	beforeSubmit = "beforeSubmit";
@@ -56,7 +58,7 @@ $.each( "branch form header step wrapper".split( " " ), function() {
 });
 
 $.widget( "kf." + wizard, {
-	version: "1.0.0-rc3",
+	version: "1.0.0",
 	options: {
 		animations: {
 			show: {
@@ -98,11 +100,14 @@ $.widget( "kf." + wizard, {
 
 		/* callbacks */
 		afterBackward: null,
+		afterDestroy: null,
 		afterForward: null,
 		afterSelect: null,
 		beforeBackward: null,
+		beforeDestroy: null,
 		beforeForward: null,
-		beforeSelect: null
+		beforeSelect: null,
+		create: null
 	},
 
 	_create: function() {
@@ -527,6 +532,10 @@ $.widget( "kf." + wizard, {
 	destroy: function() {
 		var $elements = this.elements;
 
+		if ( !this._trigger( beforeDestroy, null, this.state() ) ) {
+			return;
+		}
+
 		this.element.removeClass( wizard );
 
 		$elements.form.removeClass( className.form );
@@ -536,6 +545,8 @@ $.widget( "kf." + wizard, {
 		$elements.branches.removeClass( className.branch );
 
 		$.Widget.prototype.destroy.call( this );
+
+		this._trigger( afterDestroy );
 	},
 
 	form: function() {
@@ -689,8 +700,7 @@ $.widget( "kf." + wizard, {
 
 		return ( $step = this.step( step, branch ) ) ?
 			// The returned index can be relative to a branch, or to all steps
-			( relative ? $step.siblings( selector.step ).andSelf() : this.elements.steps )
-				.index( $step )
+			( relative ? $step.siblings( selector.step ).andSelf() : this.elements.steps ).index( $step )
 			: -1;
 	},
 
