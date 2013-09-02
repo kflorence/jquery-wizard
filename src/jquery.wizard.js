@@ -177,7 +177,7 @@ $.widget( "kf." + wizard, {
 		if ( !o.transitions[ def ] ) {
 			o.transitions[ def ] = function( step ) {
 				return self.stepIndex( step.nextAll( selector.step ) );
-			}
+			};
 		}
 
 		// Select initial step
@@ -219,16 +219,24 @@ $.widget( "kf." + wizard, {
 	},
 
 	_find: function( needles, haystack, wrap ) {
-		var i, l, needle, type,
+		var element, i, l, needle, type,
 			found = [],
 			$haystack = haystack instanceof jQuery ? haystack : $( haystack );
 
-		if ( needles != undefined && $haystack.length ) {
+		function matchElement( i, current ) {
+			if ( current === needle ) {
+				element = current;
+
+				// Break from .each loop
+				return false;
+			}
+		}
+
+		if ( needles !== null && $haystack.length ) {
 			needles = arr( needles );
 
 			for ( i = 0, l = needles.length; i < l; i++ ) {
-				var element;
-
+				element = null;
 				needle = needles[ i ];
 				type = typeof needle;
 
@@ -239,16 +247,13 @@ $.widget( "kf." + wizard, {
 					element = document.getElementById( needle.replace( '#', '' ) );
 
 				} else if ( type === obj ) {
+					console.log(needle);
 					if ( needle instanceof jQuery && needle.length ) {
 						needle = needle[ 0 ];
 					}
 
 					if ( needle.nodeType ) {
-						$haystack.each(function() {
-							if ( this === needle ) {
-								return ( element = this ) && false;
-							}
-						});
+						$haystack.each( matchElement );
 					}
 				}
 
@@ -581,7 +586,7 @@ $.widget( "kf." + wizard, {
 			event = undefined;
 		}
 
-		if ( step == undefined ) {
+		if ( step === undefined ) {
 			return;
 		}
 
