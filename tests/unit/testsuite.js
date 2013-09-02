@@ -11,15 +11,13 @@ function testWidgetDefaults( widget, defaults ) {
 				ok( $.isFunction( pluginDefaults[ key ] ), key );
 				return;
 			}
-			same( pluginDefaults[ key ], val, key );
+			deepEqual( pluginDefaults[ key ], val, key );
 		});
 	});
 
 	// ensure that all defaults were tested
 	test( "tested defaults", function() {
-		$.each( pluginDefaults, function( key, val ) {
-			ok( key in defaults, key );
-		});
+		deepEqual(pluginDefaults, defaults);
 	});
 }
 

@@ -309,7 +309,7 @@ any relevent information you may need.
     *   **stepIndex** _Number_  
         An integer representing the index of a step in the wizard.
 
-*   **length()** returns _Number_  
+*   **stepCount()** returns _Number_  
     Returns the number of steps in the wizard.
 
 *   **select( [ event, ] step [, branch, relative, history ] )** returns _jQuery_  
