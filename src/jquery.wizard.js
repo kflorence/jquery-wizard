@@ -1,5 +1,5 @@
 /*
-jQuery.wizard v1.0.0-rc2
+jQuery.wizard v1.0.0-rc3
 https://github.com/kflorence/jquery-wizard/
 An asynchronous form wizard that supports branching.
 
@@ -56,7 +56,7 @@ $.each( "branch form header step wrapper".split( " " ), function() {
 });
 
 $.widget( "kf." + wizard, {
-	version: "1.0.0-rc2",
+	version: "1.0.0-rc3",
 	options: {
 		animations: {
 			show: {
@@ -566,7 +566,7 @@ $.widget( "kf." + wizard, {
 		return typeof stepIndex === num && stepIndex >= 0 && stepIndex <= this._lastStepIndex;
 	},
 
-	length: function() {
+	stepCount: function() {
 		return this._stepCount;
 	},
 
