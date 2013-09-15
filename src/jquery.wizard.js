@@ -252,7 +252,6 @@ $.widget( "kf." + wizard, {
 					element = document.getElementById( needle.replace( '#', '' ) );
 
 				} else if ( type === obj ) {
-					console.log(needle);
 					if ( needle instanceof jQuery && needle.length ) {
 						needle = needle[ 0 ];
 					}
