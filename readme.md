@@ -352,8 +352,8 @@ any relevent information you may need.
 *   **state( [ step, branch, stepsTaken ] )** returns _Object_  
     Returns an object containing the state of the wizard at a certain step, or
     null if the step could not be found. If no arguments are provided, returns
-    the current state of the wizard. See the state section for further
-    information.
+    the current state of the wizard. See the [state](readme.md#state) section
+    for further information.
 
     *   **step** _String_, _Number_, _jQuery_, _Element_  
         A step in the wizard. Can be an element ID, step index, jQuery object
