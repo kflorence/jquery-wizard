@@ -247,7 +247,7 @@ Events are called with the wizard element as the context and these arguments:
 *   **state** _Object_  
     An object containing either the current state of the wizard (for _after_
     events) or the state the wizard will be updating to (for _before_ events).
-    See the state section for further information.
+    See the [state](readme.md#state) section for further information.
 
 ## Methods
 
