@@ -211,6 +211,9 @@ can be bound to the wizard at any time using the format _wizardeventname_
 *   **afterBackward** or _wizardafterbackward_  
     Triggered after the wizard has completed going backwards.
 
+*   **afterDestroy** or _wizardafterdestroy_  
+    Triggered after the wizard has been destroyed.
+
 *   **afterForward** or _wizardafterforward_  
     Triggered after the wizard has completed going forwards.
 
@@ -220,6 +223,10 @@ can be bound to the wizard at any time using the format _wizardeventname_
 *   **beforeBackward** or _wizardbeforebackward_  
     Triggered before the wizard attempts to move backwards. Returning false
     inside of this method will prevent the move.
+
+*   **beforeDestroy** or _wizardbeforedestroy_  
+    Triggered before the wizard is destroyed. Returning false inside of this
+    method will prevent the destruction of the wizard.
 
 *   **beforeForward** or _wizardbeforeforward_  
     Triggered before the wizard attempts to move forward. Returning false inside
