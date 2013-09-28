@@ -105,11 +105,14 @@ first argument upon initialization. The default values are shown below:
 
 		/* callbacks */
 		afterBackward: null,
+		afterDestroy: null,
 		afterForward: null,
 		afterSelect: null,
 		beforeBackward: null,
+		beforeDestroy: null,
 		beforeForward: null,
-		beforeSelect: null
+		beforeSelect: null,
+		create: null
 	}
 
 By default the wizard will start on the first step, show and hide steps
