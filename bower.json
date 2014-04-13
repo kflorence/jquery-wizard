@@ -1,0 +1,12 @@
+{
+    "name": "jquery-wizard",
+    "version": "1.0.1",
+    "main": [
+    	"src/jquery.wizard.js"
+    ],
+    "dependencies": {
+        "jquery": ">=1.3.2",
+        "jquery.ui.core": ">=1.8.0",
+        "jquery.ui.widget": ">=1.8.0"
+    }
+}
