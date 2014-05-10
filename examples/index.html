@@ -11,48 +11,11 @@
 		<script type="text/javascript" src="../external/jquery/ui/jquery-ui-1.8.12.min.js"></script>
 
 		<!-- Optional scripts -->
-		<script type="text/javascript" src="../external/ba-debug.min.js"></script>
 		<script type="text/javascript" src="../external/jquery/form/jquery.form.js"></script>
 		<script type="text/javascript" src="../external/jquery/validate/jquery.validate.js"></script>
 
 		<!-- The plugin -->
 		<script type="text/javascript" src="../src/jquery.wizard.js"></script>
-
-		<!-- For debugging -->
-		<script type="text/javascript">
-			jQuery(function( $ ) {
-				if ( !window.firebug && !window.console ) {
-
-					// from firebug lite bookmarklet
-					window.firebug = document.createElement('script');
-					firebug.setAttribute( 'src', 'http://getfirebug.com/releases/lite/1.2/firebug-lite-compressed.js' );
-					document.body.appendChild( firebug );
-
-					(function(){
-						if ( window.firebug.version ) {
-							firebug.init();
-						} else {
-							setTimeout( arguments.callee );
-						}
-					})();
-
-					void( firebug );
-
-					if ( window.debug && debug.setCallback ) {
-						(function(){
-							if ( window.firebug && window.firebug.version ) {
-								debug.setCallback(function( level ) {
-									var args = Array.prototype.slice.call( arguments, 1 );
-									firebug.d.console.cmd[level].apply( window, args );
-								}, false);
-							} else {
-								setTimeout( arguments.callee, 100);
-							}
-						})();
-					}
-				}
-			});
-		</script>
 
 		<!-- Demo -->
 		<script type="text/javascript">
@@ -61,9 +24,8 @@
 				$("#example-1").wizard({
 					stepsWrapper: "#wrapped",
 					submit: ".submit",
-					beforeSelect: function( event, state ) {
-						var inputs = $(this).wizard('state').step.find(':input');
-						return !inputs.length || !!inputs.valid();
+					beforeForward: function( event, state ) {
+						return !!$(this).wizard('form').valid();
 					}
 				}).wizard('form').submit(function( event ) {
 					event.preventDefault();
