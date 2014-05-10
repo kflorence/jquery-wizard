@@ -105,11 +105,14 @@ first argument upon initialization. The default values are shown below:
 
 		/* callbacks */
 		afterBackward: null,
+		afterDestroy: null,
 		afterForward: null,
 		afterSelect: null,
 		beforeBackward: null,
+		beforeDestroy: null,
 		beforeForward: null,
-		beforeSelect: null
+		beforeSelect: null,
+		create: null
 	}
 
 By default the wizard will start on the first step, show and hide steps
@@ -208,6 +211,9 @@ can be bound to the wizard at any time using the format _wizardeventname_
 *   **afterBackward** or _wizardafterbackward_  
     Triggered after the wizard has completed going backwards.
 
+*   **afterDestroy** or _wizardafterdestroy_  
+    Triggered after the wizard has been destroyed.
+
 *   **afterForward** or _wizardafterforward_  
     Triggered after the wizard has completed going forwards.
 
@@ -217,6 +223,10 @@ can be bound to the wizard at any time using the format _wizardeventname_
 *   **beforeBackward** or _wizardbeforebackward_  
     Triggered before the wizard attempts to move backwards. Returning false
     inside of this method will prevent the move.
+
+*   **beforeDestroy** or _wizardbeforedestroy_  
+    Triggered before the wizard is destroyed. Returning false inside of this
+    method will prevent the destruction of the wizard.
 
 *   **beforeForward** or _wizardbeforeforward_  
     Triggered before the wizard attempts to move forward. Returning false inside
@@ -237,7 +247,7 @@ Events are called with the wizard element as the context and these arguments:
 *   **state** _Object_  
     An object containing either the current state of the wizard (for _after_
     events) or the state the wizard will be updating to (for _before_ events).
-    See the state section for further information.
+    See the [state](readme.md#state) section for further information.
 
 ## Methods
 
@@ -309,9 +319,6 @@ any relevent information you may need.
     *   **stepIndex** _Number_  
         An integer representing the index of a step in the wizard.
 
-*   **length()** returns _Number_  
-    Returns the number of steps in the wizard.
-
 *   **select( [ event, ] step [, branch, relative, history ] )** returns _jQuery_  
     Selects a step within the wizard.
 
@@ -345,8 +352,8 @@ any relevent information you may need.
 *   **state( [ step, branch, stepsTaken ] )** returns _Object_  
     Returns an object containing the state of the wizard at a certain step, or
     null if the step could not be found. If no arguments are provided, returns
-    the current state of the wizard. See the state section for further
-    information.
+    the current state of the wizard. See the [state](readme.md#state) section
+    for further information.
 
     *   **step** _String_, _Number_, _jQuery_, _Element_  
         A step in the wizard. Can be an element ID, step index, jQuery object
@@ -374,6 +381,9 @@ any relevent information you may need.
         The ID of the branch that contains the step. Useful of searching for a
         step by step index relative to a branch. This parameter may be omitted
         even if further arguments are needed.
+
+*   **stepCount()** returns _Number_  
+    Returns the number of steps in the wizard.
 
 *   **stepIndex( [ step, branch, relative ] )** returns _Number_  
     Returns the index of a step in the wizard, or -1 of the step could not be
@@ -508,6 +518,11 @@ Tested and verified to work on the following browsers:
 *   **[Google Chrome](http://www.google.com/chrome/)**  
     Versions 7.0 and higher.
 
+## Deprecations
+
+*   The **length()** method was renamed to **stepCount()** in version _1.0.0-rc3_
+    due to compatibility issues with jQuery UI version 1.10.0 and higher.
+
 Found a bug? [Submit an issue](https://github.com/kflorence/jquery-wizard/issues).
 Tested in another browser? [Send me a message](https://github.com/inbox/new/kflorence) or
 fork this project and add the browser to this readme.
@@ -530,5 +545,5 @@ This plugin has been designed to integrate well with the following plugins:
 
 ## License
 
-Copyright (c) 2012 Kyle Florence  
+Copyright (c) 2012-2014 Kyle Florence  
 Dual licensed under the MIT and GPLv2 licenses.

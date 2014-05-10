@@ -37,6 +37,29 @@ test( "cancel backward", function() {
 		.wizard( "backward" );
 });
 
+test( "destroy", function() {
+	expect( 2 );
+
+	$( "#wizard" )
+		.bind( "wizardbeforedestroy", callback )
+		.bind( "wizardafterdestroy", callback )
+		.wizard()
+		.wizard( "destroy" );
+});
+
+test( "cancel destroy", function() {
+	expect( 0 );
+
+	$( "#wizard" )
+		.bind( "wizardafterdestroy", callback )
+		.wizard({
+			beforeDestroy: function() {
+				return false;
+			}
+		})
+		.wizard( "destroy" );
+});
+
 test( "forward", function() {
 	expect( 4 );
 

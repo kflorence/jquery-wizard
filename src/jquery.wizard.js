@@ -1,5 +1,5 @@
 /*
-jQuery.wizard v1.0.0-rc2
+jQuery.wizard v1.0.1
 https://github.com/kflorence/jquery-wizard/
 An asynchronous form wizard that supports branching.
 
@@ -43,9 +43,11 @@ var excludesFilter,
 
 	// Events
 	afterBackward = "afterBackward",
+	afterDestroy = "afterDestroy",
 	afterForward = "afterForward",
 	afterSelect = "afterSelect",
 	beforeBackward = "beforeBackward",
+	beforeDestroy = "beforeDestroy",
 	beforeForward = "beforeForward",
 	beforeSelect = "beforeSelect",
 	beforeSubmit = "beforeSubmit";
@@ -56,7 +58,7 @@ $.each( "branch form header step wrapper".split( " " ), function() {
 });
 
 $.widget( "kf." + wizard, {
-	version: "1.0.0-rc2",
+	version: "1.0.1",
 	options: {
 		animations: {
 			show: {
@@ -98,11 +100,14 @@ $.widget( "kf." + wizard, {
 
 		/* callbacks */
 		afterBackward: null,
+		afterDestroy: null,
 		afterForward: null,
 		afterSelect: null,
 		beforeBackward: null,
+		beforeDestroy: null,
 		beforeForward: null,
-		beforeSelect: null
+		beforeSelect: null,
+		create: null
 	},
 
 	_create: function() {
@@ -177,7 +182,7 @@ $.widget( "kf." + wizard, {
 		if ( !o.transitions[ def ] ) {
 			o.transitions[ def ] = function( step ) {
 				return self.stepIndex( step.nextAll( selector.step ) );
-			}
+			};
 		}
 
 		// Select initial step
@@ -219,16 +224,24 @@ $.widget( "kf." + wizard, {
 	},
 
 	_find: function( needles, haystack, wrap ) {
-		var i, l, needle, type,
+		var element, i, l, needle, type,
 			found = [],
 			$haystack = haystack instanceof jQuery ? haystack : $( haystack );
 
-		if ( needles != undefined && $haystack.length ) {
+		function matchElement( i, current ) {
+			if ( current === needle ) {
+				element = current;
+
+				// Break from .each loop
+				return false;
+			}
+		}
+
+		if ( needles !== null && $haystack.length ) {
 			needles = arr( needles );
 
 			for ( i = 0, l = needles.length; i < l; i++ ) {
-				var element;
-
+				element = null;
 				needle = needles[ i ];
 				type = typeof needle;
 
@@ -244,11 +257,7 @@ $.widget( "kf." + wizard, {
 					}
 
 					if ( needle.nodeType ) {
-						$haystack.each(function() {
-							if ( this === needle ) {
-								return ( element = this ) && false;
-							}
-						});
+						$haystack.each( matchElement );
 					}
 				}
 
@@ -522,6 +531,10 @@ $.widget( "kf." + wizard, {
 	destroy: function() {
 		var $elements = this.elements;
 
+		if ( !this._trigger( beforeDestroy, null, this.state() ) ) {
+			return;
+		}
+
 		this.element.removeClass( wizard );
 
 		$elements.form.removeClass( className.form );
@@ -531,6 +544,8 @@ $.widget( "kf." + wizard, {
 		$elements.branches.removeClass( className.branch );
 
 		$.Widget.prototype.destroy.call( this );
+
+		this._trigger( afterDestroy );
 	},
 
 	form: function() {
@@ -566,7 +581,7 @@ $.widget( "kf." + wizard, {
 		return typeof stepIndex === num && stepIndex >= 0 && stepIndex <= this._lastStepIndex;
 	},
 
-	length: function() {
+	stepCount: function() {
 		return this._stepCount;
 	},
 
@@ -581,7 +596,7 @@ $.widget( "kf." + wizard, {
 			event = undefined;
 		}
 
-		if ( step == undefined ) {
+		if ( step === undefined ) {
 			return;
 		}
 
@@ -684,8 +699,7 @@ $.widget( "kf." + wizard, {
 
 		return ( $step = this.step( step, branch ) ) ?
 			// The returned index can be relative to a branch, or to all steps
-			( relative ? $step.siblings( selector.step ).andSelf() : this.elements.steps )
-				.index( $step )
+			( relative ? $step.siblings( selector.step ).andSelf() : this.elements.steps ).index( $step )
 			: -1;
 	},
 
