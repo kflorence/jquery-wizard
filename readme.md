@@ -37,8 +37,8 @@ function, the index of a step or the name of the branch.
 
     $( "form" ).wizard({
         transitions: {
-            gender: function( step, action ) {
-                return step.find( "[name=gender]" ).val();
+            gender: function( state, action ) {
+                return state.step.find( "[name=gender]" ).val();
             }
         }
     });
@@ -52,8 +52,8 @@ return a step index or branch name in the wizard.
 Transitions are called with the wizard object as the context and these
 arguments:
 
-*   **step** _jQuery_  
-    The current step in the wizard.
+*   **state** _Object_  
+    The current state of the wizard.
 
 *   **action** _Function_  
     The action function should be used to pass the result back to the wizard
@@ -248,6 +248,10 @@ Events are called with the wizard element as the context and these arguments:
     An object containing either the current state of the wizard (for _after_
     events) or the state the wizard will be updating to (for _before_ events).
     See the [state](readme.md#state) section for further information.
+
+*   [ **update** ] _Function_
+    This function is available on any of the **before** events to allow
+    deferred cancellation of events if asynchronous processing is needed.
 
 ## Methods
 
@@ -497,13 +501,24 @@ values are outlined below.
 *   **stepsRemaining** _Number_  
     The _estimated_ difference between _stepsComplete_ and _stepsPossible_.
 
+## Installation
+
+The easiest way to install is via [Bower](http://bower.io):
+
+    bower install jquery-wizard
+
+You can also [download releases](https://github.com/kflorence/jquery-wizard/releases)
+directly from github. The latest uncompressed version is available here:
+
+* [jquery.wizard.js](https://raw.githubusercontent.com/kflorence/jquery-wizard/master/src/jquery.wizard.js)
+
 ## Requirements
 
 *   **[jQuery](http://jquery.com/)**  
-    Versions 1.3.2 or higher.
+    Versions 1.6.0 or higher.
 
 *   **[jQuery UI](http://jqueryui.com/)**  
-    Core and Widget, versions 1.8.0 or higher.
+    Core and Widget, versions 1.9.0 or higher.
 
 ## Compabitility
 
@@ -517,11 +532,6 @@ Tested and verified to work on the following browsers:
 
 *   **[Google Chrome](http://www.google.com/chrome/)**  
     Versions 7.0 and higher.
-
-## Deprecations
-
-*   The **length()** method was renamed to **stepCount()** in version _1.0.0-rc3_
-    due to compatibility issues with jQuery UI version 1.10.0 and higher.
 
 Found a bug? [Submit an issue](https://github.com/kflorence/jquery-wizard/issues).
 Tested in another browser? [Send me a message](https://github.com/inbox/new/kflorence) or
@@ -545,5 +555,5 @@ This plugin has been designed to integrate well with the following plugins:
 
 ## License
 
-Copyright (c) 2012-2014 Kyle Florence  
+Copyright (c) 2014 Kyle Florence  
 Dual licensed under the MIT and GPLv2 licenses.

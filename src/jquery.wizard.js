@@ -1,13 +1,13 @@
 /*
-jQuery.wizard v1.0.1
+jQuery.wizard v1.1.0
 https://github.com/kflorence/jquery-wizard/
 An asynchronous form wizard that supports branching.
 
 Requires:
- - jQuery 1.3.2+
- - jQuery UI widget 1.8.0+
+ - jQuery 1.6.0+
+ - jQuery UI widget 1.9.0+
 
-Copyright (c) 2011 Kyle Florence
+Copyright (c) 2014 Kyle Florence
 Dual licensed under the MIT and GPLv2 licenses.
 */
 
@@ -58,7 +58,7 @@ $.each( "branch form header step wrapper".split( " " ), function() {
 });
 
 $.widget( "kf." + wizard, {
-	version: "1.0.1",
+	version: "1.1.0",
 	options: {
 		animations: {
 			show: {
@@ -180,8 +180,8 @@ $.widget( "kf." + wizard, {
 
 		// Add default transition function if one wasn't defined
 		if ( !o.transitions[ def ] ) {
-			o.transitions[ def ] = function( step ) {
-				return self.stepIndex( step.nextAll( selector.step ) );
+			o.transitions[ def ] = function( state ) {
+				return self.stepIndex( state.step.nextAll( selector.step ) );
 			};
 		}
 
@@ -201,7 +201,7 @@ $.widget( "kf." + wizard, {
 		}
 
 		(function next() {
-			self._transition( stepIndex, function( step, branch ) {
+			self._transition( self._state( stepIndex, stepsTaken ), function( step, branch ) {
 				if ( ( stepIndex = self.stepIndex( step, branch ) ) === -1 ) {
 					throw new Error( '[_fastForward]: Invalid step "' + step + '"' );
 
@@ -394,30 +394,15 @@ $.widget( "kf." + wizard, {
 		return state;
 	},
 
-	_transition: function( step, branch, action ) {
-		var self = this;
-
-		// args: action
-		// step becomes the current step
-		if ( $.isFunction( step ) ) {
-			action = step;
-			step = self._currentState.stepIndex;
-			branch = undefined;
-
-		// args: step, action
-		} else if ( $.isFunction( branch ) ) {
-			action = branch;
-			branch = undefined;
-		}
-
+	_transition: function( state, action ) {
 		var response,
+			self = this,
 			o = self.options,
-			$step = self.step( step, branch ),
-			stateName = $step.attr( o.stateAttribute ),
+			stateName = state.step.attr( o.stateAttribute ),
 			transitionFunc = stateName ? o.transitions[ stateName ] : o.transitions[ def ];
 
 		if ( $.isFunction( transitionFunc ) ) {
-			response = transitionFunc.call( self, $step, function() {
+			response = transitionFunc.call( self, state, function() {
 				return action.apply( self, aps.call( arguments ) );
 			});
 
@@ -432,22 +417,27 @@ $.widget( "kf." + wizard, {
 			// Response could be array like [ step, branch ]
 			action.apply( self, arr( response ) );
 		}
-
-		// The immediate response
-		return response;
 	},
 
-	_update: function( event, state ) {
-		var current = this._currentState,
-			o = this.options;
+	_update: function( event, state, force ) {
+		var self = this,
+			current = self._currentState,
+			data = [ state, function( response ) {
+				self._update( event, state, response !== false );
+			} ],
+			o = self.options;
 
 		if ( current.step ) {
-			if ( o.disabled || !state ||
+			if (
+				!state ||
+				o.disabled ||
 				state.stepIndex === current.stepIndex ||
-				!this._trigger( beforeSelect, event, state ) ||
-				( state.isMovingForward && !this._trigger( beforeForward, event, state ) ) ||
-				( !state.isMovingForward && !this._trigger( beforeBackward, event, state ) ) ) {
-
+				force !== true && (
+					!this._trigger( beforeSelect, event, data ) ||
+					( state.isMovingForward && !this._trigger( beforeForward, event, data ) ) ||
+					( !state.isMovingForward && !this._trigger( beforeBackward, event, data ) )
+				)
+			) {
 				return;
 			}
 
@@ -528,14 +518,24 @@ $.widget( "kf." + wizard, {
 		return this._find( this._currentState.branchesActivated, this.elements.branches );
 	},
 
-	destroy: function() {
-		var $elements = this.elements;
+	destroy: function( event, force ) {
+		var self = this,
+			$elements = self.elements,
+			data = [ self.state(), function( response ) {
+				return self.destroy( event, response !== false );
+			} ];
 
-		if ( !this._trigger( beforeDestroy, null, this.state() ) ) {
+		// args: force
+		if ( typeof event === bool ) {
+			force = event;
+			event = undefined;
+		}
+
+		if ( force !== true && !self._trigger( beforeDestroy, event, data ) ) {
 			return;
 		}
 
-		this.element.removeClass( wizard );
+		self.element.removeClass( wizard );
 
 		$elements.form.removeClass( className.form );
 		$elements.header.removeClass( className.header );
@@ -543,9 +543,9 @@ $.widget( "kf." + wizard, {
 		$elements.stepsWrapper.removeClass( className.wrapper );
 		$elements.branches.removeClass( className.branch );
 
-		$.Widget.prototype.destroy.call( this );
+		$.Widget.prototype.destroy.call( self );
 
-		this._trigger( afterDestroy );
+		self._trigger( afterDestroy );
 	},
 
 	form: function() {

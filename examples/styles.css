@@ -47,6 +47,7 @@ h3 span {
 label.error {
 	color: #ff0000;
 	margin-left: 10px;
+	position: relative;
 }
 
 #progressbar {
@@ -73,7 +74,11 @@ label.error {
 }
 
 .wizard .wizard-step {
-	margin: 10px;
+	margin: 10px 0;
+}
+
+.wizard .wizard-step p {
+	padding: 5px;
 }
 
 .navigation {
@@ -91,6 +96,20 @@ label.error {
 .navigation li {
 	float: left;
 	margin-right: 10px;
+}
+
+.pad {
+	padding: 5px;
+}
+
+.blue {
+	background: blue;
+	color: white;
+}
+
+.pink {
+	background: pink;
+	color: black;
 }
 
 .clearfix:before, .clearfix:after {

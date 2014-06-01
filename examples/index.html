@@ -1,65 +1,79 @@
 <!doctype html>
 <html>
 	<head>
-		<title>jQuery.wizard</title>
+		<title>jQuery JavaScript Form Wizard | jQuery.wizard</title>
+
+		<meta name="description" content="A jQuery plugin that turns a standard
+		HTML form into a form wizard by breaking it into a series of
+		well-defined steps. The purpose of these steps is to better group
+		related inputs, preventing the user from becoming overwhelmed at the
+		size or complexity of a form and helping them to better understand
+		the structure of an unfamiliar form.">
+
+		<meta name="keywords" content="form, wizard, javascript, jquery,
+		asynchronous, branching, steps, finite-state machine, transitions,
+		stateful">
 
 		<link rel="stylesheet" type="text/css" href="styles.css" />
-		<link rel="stylesheet" type="text/css" href="../external/jquery/ui/themes/smoothness/jquery-ui.smoothness.css" />
+		<link rel="stylesheet" type="text/css" href="../external/jquery/ui/smoothness/jquery-ui-1.10.4.custom.min.css" />
 
-		<!-- Required scripts -->
-		<script type="text/javascript" src="../external/jquery/jquery-1.4.min.js"></script>
-		<script type="text/javascript" src="../external/jquery/ui/jquery-ui-1.8.12.min.js"></script>
+		<script type="text/javascript" src="../external/jquery/jquery-2.1.1.min.js"></script>
+		<script type="text/javascript" src="../external/jquery/ui/jquery-ui-1.10.4.custom.min.js"></script>
+		<script type="text/javascript" src="../src/jquery.wizard.js"></script>
 
 		<!-- Optional scripts -->
-		<script type="text/javascript" src="../external/jquery/form/jquery.form.js"></script>
-		<script type="text/javascript" src="../external/jquery/validate/jquery.validate.js"></script>
-
-		<!-- The plugin -->
-		<script type="text/javascript" src="../src/jquery.wizard.js"></script>
+		<script type="text/javascript" src="../external/jquery/form/jquery.form-3.50.js"></script>
+		<script type="text/javascript" src="../external/jquery/validate/jquery.validate-1.12.0.min.js"></script>
 
 		<!-- Demo -->
 		<script type="text/javascript">
 			jQuery(function($) {
 				// Example 1: Basic wizard with validation
-				$("#example-1").wizard({
+				$( "#example-1" ).wizard({
 					stepsWrapper: "#wrapped",
 					submit: ".submit",
 					beforeForward: function( event, state ) {
-						return !!$(this).wizard('form').valid();
+						if ( state.stepIndex === 1 ) {
+							$("#name").text($("[name=name]").val());
+
+						} else if ( state.stepIndex === 2 ) {
+							$("#gender").text($("[name=gender]").val());
+						}
+						return !!$( this ).wizard( "form" ).valid();
 					}
-				}).wizard('form').submit(function( event ) {
+				}).wizard( "form" ).submit(function( event ) {
 					event.preventDefault();
-					alert('Form submitted!');
+					alert( "Form submitted!" );
 
 				}).validate({
-					errorPlacement: function(error, element) { 
-						if ( element.is(':radio') || element.is(':checkbox') ) {
+					errorPlacement: function( error, element ) {
+						if ( element.is( ":radio" ) || element.is( ":checkbox" ) ) {
 							error.insertBefore( element.next() );
 
-						} else { 
+						} else {
 							error.insertAfter( element );
 						}
 					}
 				});
 
 				// Example 2: Basic wizard with progress bar
-				$("#progressbar").progressbar();
+				$( "#progressbar" ).progressbar();
 
-				$("#example-2").wizard({
+				$( "#example-2" ).wizard({
 					afterSelect: function( event, state ) {
-						$("#progressbar").progressbar("value", state.percentComplete);
-						$("#location").text("(" + state.stepsComplete + "/" + state.stepsPossible + ")");
+						$( "#progressbar" ).progressbar( "value", state.percentComplete );
+						$( "#location" ).text( "(" + state.stepsComplete + "/" + state.stepsPossible + ")" );
 					}
 				});
 
 				// Example 3: Basic branching wizard
-				$("#example-3").wizard({
+				$( "#example-3" ).wizard({
 					transitions: {
-						color: function( $step, action ) {
-							var branch = $step.find("[name=color]:checked").val();
+						color: function( state, action ) {
+							var branch = state.step.find( "[name=color]:checked" ).val();
 
-							if (!branch) {
-								alert("Please select a value to continue.");
+							if ( !branch ) {
+								alert( "Please select a value to continue." );
 							}
 
 							return branch;
@@ -68,16 +82,9 @@
 				});
 
 				// Example 4: Nested Branches
-				$("#example-4").wizard();
+				$( "#example-4" ).wizard();
 			});
 		</script>
-
-		<style type="text/css">
-			label.error {
-				position: relative;
-				
-			}
-		</style>
 	</head>
 	<body>
 		<h1><a href="../" title="jQuery.wizard">jQuery.wizard</a></h1>
@@ -88,20 +95,18 @@
 
 				<form name="example-1" id="wrapped">
 					<div class="step">
-						What is your first name?<br />
-						<input type="text" name="firstname" class="required" /><br />
-						What is your last name?<br />
-						<input type="text" name="lastname" class="required" /><br />
+						<label>What is your name?</label>
+						<input type="text" name="name" class="required" />
 					</div>
 
 					<div class="step">
-						What is your gender?<br />
+						<p>What is your gender?</p>
 						<input type="radio" name="gender" value="male" class="required" />Male<br />
 						<input type="radio" name="gender" value="female" class="required" />Female<br />
 					</div>
 
 					<div class="submit step">
-						<p>Thanks!</p>
+						<p>You are a <span id="gender"></span> named <span id="name"></span>.</p>
 					</div>
 
 					<div class="navigation">
@@ -117,8 +122,10 @@
 			<div id="example-2">
 				<h2>Basic Wizard With Progress Bar</h2>
 
-				<h3>Progress <span id="location"></span></h3>
-				<div id="progressbar"></div>
+				<div class="pad">
+					<h3>Progress <span id="location"></span></h3>
+					<div id="progressbar"></div>
+				</div>
 
 				<form name="example-2">
 					<div class="step">
@@ -158,18 +165,18 @@
 
 					<div class="branch" id="pink">
 						<div class="step" data-state="end">
-							<p>This is the pink branch.</p>
+							<p class="pink">Pink, it was love at first sight</p>
 						</div>
 					</div>
 
 					<div class="branch" id="blue">
 						<div class="step" data-state="end">
-							<p>This is the blue branch.</p>
+							<p class="blue">I'm blue da ba dee da ba die...</p>
 						</div>
 					</div>
 
 					<div class="step" id="end">
-						<p>Back to the default branch and this wizard is over.</p>
+						<p>FIN.</p>
 					</div>
 
 					<div class="navigation">

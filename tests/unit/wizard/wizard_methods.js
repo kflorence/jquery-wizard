@@ -4,8 +4,6 @@
 
 (function( $ ) {
 
-var wizardDataName = $.isFunction($.ui.isOver) ? "wizard" : "kf-wizard";
-
 module( "wizard: methods", {
 	setup: function() {
 		$w = $( "#wizard" ).wizard();
@@ -55,8 +53,8 @@ test( "branchesActivated", function() {
 test( "destroy", function() {
 	expect( 2 );
 
-	ok( $w.hasClass( "wizard" ) && $w.data( wizardDataName ), "Wizard has been created" );
-	ok( !$w.wizard( "destroy" ).hasClass( "wizard" ) && !$w.data( wizardDataName ),
+	ok( $w.hasClass( "wizard" ) && $w.data( "kf-wizard" ), "Wizard has been created" );
+	ok( !$w.wizard( "destroy" ).hasClass( "wizard" ) && !$w.data( "kf-wizard" ),
 		"Wizard has been destroyed" );
 });
 
