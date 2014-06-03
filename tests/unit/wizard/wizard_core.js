@@ -3,8 +3,6 @@
  */
 (function( $ ) {
 
-var wizardDataName = $.isFunction($.ui.isOver) ? "wizard" : "kf-wizard";
-
 module( "wizard: core" );
 
 test( "widget method - empty collection", function() {
@@ -86,7 +84,7 @@ test( "wizard update", function() {
 				unidirectional: "wizardNoBackward"
 			}
 		}),
-		wizard = $wizard.data( wizardDataName );
+		wizard = $wizard.data( "kf-wizard" );
 
 	ok( wizard.elements.backward.is( ":disabled" ),
 		"Backward button disabled on first step" );

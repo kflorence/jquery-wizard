@@ -1,13 +1,12 @@
 <!doctype html>
 <html>
 	<head>
-		<title>jQuery.wizard Unit Tests using jQuery 1.4 and jQuery UI 1.8.12</title>
+		<title>jQuery.wizard Unit Tests</title>
 
 		<link rel="stylesheet" type="text/css" href="qunit/qunit.css" />
 
-		<script type="text/javascript" src="../external/ba-debug.min.js"></script>
-		<script type="text/javascript" src="../external/jquery/jquery-1.4.min.js"></script>
-		<script type="text/javascript" src="../external/jquery/ui/jquery-ui-1.8.12.min.js"></script>
+		<script type="text/javascript" src="../external/jquery/jquery-2.1.1.min.js"></script>
+		<script type="text/javascript" src="../external/jquery/ui/jquery-ui-1.10.4.custom.min.js"></script>
 		<script type="text/javascript" src="../src/jquery.wizard.js"></script>
 
 		<script type="text/javascript" src="qunit/qunit.js"></script>
@@ -18,45 +17,9 @@
 		<script type="text/javascript" src="unit/wizard/wizard_events.js"></script>
 		<script type="text/javascript" src="unit/wizard/wizard_methods.js"></script>
 		<script type="text/javascript" src="unit/wizard/wizard_options.js"></script>
-
-		<!-- For debugging -->
-		<script type="text/javascript">
-			jQuery(function( $ ) {
-				if ( !window.firebug && !window.console ) {
-
-					// from firebug lite bookmarklet
-					window.firebug = document.createElement('script');
-					firebug.setAttribute( 'src', 'http://getfirebug.com/releases/lite/1.2/firebug-lite-compressed.js' );
-					document.body.appendChild( firebug );
-
-					(function(){
-						if ( window.firebug.version ) {
-							firebug.init();
-						} else {
-							setTimeout( arguments.callee );
-						}
-					})();
-
-					void( firebug );
-
-					if ( window.debug && debug.setCallback ) {
-						(function(){
-							if ( window.firebug && window.firebug.version ) {
-								debug.setCallback(function( level ) {
-									var args = Array.prototype.slice.call( arguments, 1 );
-									firebug.d.console.cmd[level].apply( window, args );
-								}, false);
-							} else {
-								setTimeout( arguments.callee, 100);
-							}
-						})();
-					}
-				}
-			});
-		</script>
 	</head>
 	<body>
-		<h1 id="qunit-header">jQuery.wizard Unit Tests using jQuery 1.4 and jQuery UI 1.8.12</h1>
+		<h1 id="qunit-header">jQuery.wizard Unit Tests</h1>
 		<h2 id="qunit-banner"></h2>
 		<h2 id="qunit-userAgent"></h2>
 		<ol id="qunit-tests"></ol>
@@ -127,7 +90,9 @@
 					</div>
 					<div class="step stop"></div>
 					<div class="step" id="destination"></div>
-					<div class="step"></div>
+					<div class="step" data-state="asyncNext"></div>
+					<div class="step stop"></div>
+					<div class="step" id="asyncDestination"></div>
 				</form>
 			</div>
 		</div>

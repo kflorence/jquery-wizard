@@ -11,15 +11,36 @@ var callback = function( e ) {
 module( "wizard: events" );
 
 test( "backward", function() {
-	expect( 2 );
+	var i = 0,
+		$w = $( "#wizard" );
 
-	$( "#wizard" )
+	expect( 4 );
+
+	$w
 		.bind( "wizardbeforebackward", callback )
 		.bind( "wizardafterbackward", callback )
-		.wizard()
-		.wizard( "forward" )
+		.wizard({
+			// Issue #19 - asynchronous events
+			beforeBackward: function( event, state, update ) {
+				var async = i > 0;
+
+				if (async) {
+					stop();
+					setTimeout(function() {
+						update( true );
+						start();
+
+						// Can't go back on first step
+						$w.wizard( "backward" );
+					}, 1);
+				}
+
+				i++;
+				return !async;
+			}
+		})
+		.wizard( "forward", 2 )
 		.wizard( "backward" )
-		// Can't go back on first step
 		.wizard( "backward" );
 });
 
@@ -34,6 +55,7 @@ test( "cancel backward", function() {
 			}
 		})
 		.wizard( "forward" )
+		.wizard( "backward" )
 		.wizard( "backward" );
 });
 
