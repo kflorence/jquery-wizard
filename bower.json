@@ -4,6 +4,13 @@
     "main": [
     	"src/jquery.wizard.js"
     ],
+    "ignore": [
+	"**/.*",
+	"node_modules",
+	"bower_components",
+	"test",
+	"tests"
+    ],
     "dependencies": {
         "jquery": ">=1.6.0",
         "jquery-ui": ">=1.9.0"
