@@ -500,10 +500,14 @@ values are outlined below.
 
 *   **stepsRemaining** _Number_  
     The _estimated_ difference between _stepsComplete_ and _stepsPossible_.
-
+	
 ## Installation
 
-The easiest way to install is via [Bower](http://bower.io):
+The easiest way to install is via [NPM](http://npmjs.org):
+
+    npm install @kflorence/jquery-wizard
+
+Or [Bower](http://bower.io):
 
     bower install jquery-wizard
 
