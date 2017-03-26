@@ -559,5 +559,5 @@ This plugin has been designed to integrate well with the following plugins:
 
 ## License
 
-Copyright (c) 2014 Kyle Florence  
+Copyright (c) 2017 Kyle Florence  
 Dual licensed under the MIT and GPLv2 licenses.
