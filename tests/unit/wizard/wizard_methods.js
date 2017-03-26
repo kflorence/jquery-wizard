@@ -51,11 +51,17 @@ test( "branchesActivated", function() {
 });
 
 test( "destroy", function() {
-	expect( 2 );
+	expect( 6 );
 
-	ok( $w.hasClass( "wizard" ) && $w.data( "kf-wizard" ), "Wizard has been created" );
-	ok( !$w.wizard( "destroy" ).hasClass( "wizard" ) && !$w.data( "kf-wizard" ),
-		"Wizard has been destroyed" );
+	var wizard = $w.data( "kf-wizard" );
+	ok( $w.hasClass( "wizard" ) && wizard, "Wizard has been created" );
+	ok( $._data( wizard.elements.backward.get(0), "events" ) != undefined, "Event bound to backward button." );
+	ok( $._data( wizard.elements.forward.get(0), "events" ) != undefined, "Event bound to forward button." );
+	ok( !$w.wizard( "destroy" ).hasClass( "wizard" ) && !$w.data( "kf-wizard" ), "Wizard has been destroyed" );
+
+	// #35 unbind events created during initialization on destroy
+	ok( !$._data( wizard.elements.backward.get(0), "events" ), "Event unbound from backward button." );
+	ok( !$._data( wizard.elements.forward.get(0), "events" ), "Event unbound from forward button." );
 });
 
 test( "form", function() {
