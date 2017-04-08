@@ -28,24 +28,7 @@
 		<!-- Demo -->
 		<script type="text/javascript">
 			jQuery(function($) {
-				// Example 1: Basic wizard with validation
-				$( "#example-1" ).wizard({
-					stepsWrapper: "#wrapped",
-					submit: ".submit",
-					beforeForward: function( event, state ) {
-						if ( state.stepIndex === 1 ) {
-							$("#name").text($("[name=name]").val());
-
-						} else if ( state.stepIndex === 2 ) {
-							$("#gender").text($("[name=gender]").val());
-						}
-						return !!$( this ).wizard( "form" ).valid();
-					}
-				}).wizard( "form" ).submit(function( event ) {
-					event.preventDefault();
-					alert( "Form submitted!" );
-
-				}).validate({
+				var validate = {
 					errorPlacement: function( error, element ) {
 						if ( element.is( ":radio" ) || element.is( ":checkbox" ) ) {
 							error.insertBefore( element.next() );
@@ -54,7 +37,25 @@
 							error.insertAfter( element );
 						}
 					}
-				});
+				};
+
+				// Example 1: Basic wizard with validation
+				$( "#example-1" ).wizard({
+					submit: ".submit",
+					beforeForward: function( event, state ) {
+						if ( state.stepIndex === 1 ) {
+							$("#name").text($("[name=name]").val());
+
+						} else if ( state.stepIndex === 2 ) {
+							$("#gender").text($("[name=gender]").val());
+						}
+						return $( this ).wizard( "form" ).valid();
+					}
+				}).wizard( "form" ).submit(function( event ) {
+					event.preventDefault();
+					alert( "Form submitted!" );
+
+				}).validate( validate );
 
 				// Example 2: Basic wizard with progress bar
 				$( "#progressbar" ).progressbar();
@@ -83,6 +84,38 @@
 
 				// Example 4: Nested Branches
 				$( "#example-4" ).wizard();
+
+				// Example 5: Clearing input values before navigating to a step
+				$( "#example-5" ).wizard({
+					beforeBackward: function( event, state ) {
+						state.step.find("input:text, input:password, input:file, select, textarea").val("");
+						state.step.find("input:radio, input:checkbox").removeAttr("checked").removeAttr("selected");
+					},
+					beforeForward: function( event, state ) {
+						return $( this ).wizard( "form" ).valid();
+					}
+				}).wizard( "form" ).validate( validate );
+
+				// Example 6: Dynamically add steps to the wizard
+				var $example6 = $( "#example-6" ).wizard();
+
+				$example6.find( "[name=e6-howMany]" ).on( "change", function() {
+					var $this = $( this );
+					var howMany = $this.val();
+
+					// Remove previously added dynamic steps
+					$example6.find( ".step.dynamic" ).remove();
+
+					// Add in selected number of steps
+					for (var i = 0, l = howMany; i < howMany; i++) {
+						$example6.find( ".steps" ).append(
+							$( "<div>" ).addClass( "dynamic step" ).text( "Dynamically created step #" + (i + 1) )
+						);
+					}
+
+					// Destroy and re-create the wizard
+					$example6.wizard( "destroy" ).wizard();
+				});
 			});
 		</script>
 	</head>
@@ -93,7 +126,7 @@
 			<div id="example-1">
 				<h2>Basic Wizard With Validation</h2>
 
-				<form name="example-1" id="wrapped">
+				<form name="example-1">
 					<div class="step">
 						<label>What is your name?</label>
 						<input type="text" name="name" class="required" />
@@ -191,7 +224,7 @@
 			<div id="example-4">
 				<h2>Nested Branches</h2>
 
-				<form name="example-3">
+				<form name="example-4">
 					<div class="step" data-state="e4-branch-1">
 						<p>Start</p>
 					</div>
@@ -206,6 +239,55 @@
 
 					<div class="step" id="e4-finish">
 						<p>Finish</p>
+					</div>
+
+					<div class="navigation">
+						<ul class="clearfix">
+							<li><button type="button" name="backward" class="backward">Backward</button></li>
+							<li><button type="button" name="forward" class="forward">Forward</button></li>
+						</ul>
+					</div>
+				</form>
+			</div>
+
+			<div id="example-5">
+				<h2>Clearing Input Values Before Navigating</h2>
+
+				<form name="example-5">
+					<div class="step">
+						<p><input type="text" name="e5-text" class="required"></p>
+
+						<input type="radio" name="e5-radio" value="A" class="required">A<br>
+						<input type="radio" name="e5-radio" value="B" class="required">B<br>
+					</div>
+
+					<div class="step">
+						Click "backward" to change your answers.
+					</div>
+
+					<div class="navigation">
+						<ul class="clearfix">
+							<li><button type="button" name="backward" class="backward">Backward</button></li>
+							<li><button type="button" name="forward" class="forward">Forward</button></li>
+						</ul>
+					</div>
+				</form>
+			</div>
+
+			<div id="example-6">
+				<h2>Create Steps Dynamically</h2>
+
+				<form name="example-6">
+					<div class="steps">
+						<div class="step">
+							<p>How many steps would you like to create?</p>
+							<select name="e6-howMany">
+								<option value="0">--</option>
+								<option value="1">One</option>
+								<option value="2">Two</option>
+								<option value="3">Three</option>
+							</select>
+						</div>
 					</div>
 
 					<div class="navigation">

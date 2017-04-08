@@ -1,5 +1,5 @@
 /*
-jQuery.wizard v1.1.0
+jQuery.wizard v1.1.3
 https://github.com/kflorence/jquery-wizard/
 An asynchronous form wizard that supports branching.
 
@@ -7,14 +7,13 @@ Requires:
  - jQuery 1.6.0+
  - jQuery UI widget 1.9.0+
 
-Copyright (c) 2014 Kyle Florence
+Copyright (c) 2017 Kyle Florence
 Dual licensed under the MIT and GPLv2 licenses.
 */
 
 (function( $, undefined ) {
 
-var excludesFilter,
-	count = 0,
+var count = 0,
 	selector = {},
 	className = {},
 
@@ -33,6 +32,7 @@ var excludesFilter,
 	click = "click",
 	submit = "submit",
 	disabled = "disabled",
+	namespace = "kf-wizard",
 	wizard = "wizard",
 
 	def = "default",
@@ -58,7 +58,7 @@ $.each( "branch form header step wrapper".split( " " ), function() {
 });
 
 $.widget( "kf." + wizard, {
-	version: "1.1.0",
+	version: "1.1.3",
 	options: {
 		animations: {
 			show: {
@@ -149,12 +149,12 @@ $.widget( "kf." + wizard, {
 			$stepsWrapper.attr( id, wizard + "-" + ( ++count ) );
 		}
 
-		self.elements.forward.click(function( event ) {
+		self.elements.forward.on( "click." + namespace, function( event ) {
 			event.preventDefault();
 			self.forward( event );
 		});
 
-		self.elements.backward.click(function( event ) {
+		self.elements.backward.on( "click." + namespace, function( event ) {
 			event.preventDefault();
 			self.backward( event );
 		});
@@ -534,6 +534,9 @@ $.widget( "kf." + wizard, {
 		if ( force !== true && !self._trigger( beforeDestroy, event, data ) ) {
 			return;
 		}
+
+		self.elements.backward.off( "." + namespace );
+		self.elements.forward.off( "." + namespace );
 
 		self.element.removeClass( wizard );
 
