@@ -95,6 +95,27 @@
 						return $( this ).wizard( "form" ).valid();
 					}
 				}).wizard( "form" ).validate( validate );
+
+				// Example 6: Dynamically add steps to the wizard
+				var $example6 = $( "#example-6" ).wizard();
+
+				$example6.find( "[name=e6-howMany]" ).on( "change", function() {
+					var $this = $( this );
+					var howMany = $this.val();
+
+					// Remove previously added dynamic steps
+					$example6.find( ".step.dynamic" ).remove();
+
+					// Add in selected number of steps
+					for (var i = 0, l = howMany; i < howMany; i++) {
+						$example6.find( ".steps" ).append(
+							$( "<div>" ).addClass( "dynamic step" ).text( "Dynamically created step #" + (i + 1) )
+						);
+					}
+
+					// Destroy and re-create the wizard
+					$example6.wizard( "destroy" ).wizard();
+				});
 			});
 		</script>
 	</head>
@@ -242,6 +263,31 @@
 
 					<div class="step">
 						Click "backward" to change your answers.
+					</div>
+
+					<div class="navigation">
+						<ul class="clearfix">
+							<li><button type="button" name="backward" class="backward">Backward</button></li>
+							<li><button type="button" name="forward" class="forward">Forward</button></li>
+						</ul>
+					</div>
+				</form>
+			</div>
+
+			<div id="example-6">
+				<h2>Create Steps Dynamically</h2>
+
+				<form name="example-6">
+					<div class="steps">
+						<div class="step">
+							<p>How many steps would you like to create?</p>
+							<select name="e6-howMany">
+								<option value="0">--</option>
+								<option value="1">One</option>
+								<option value="2">Two</option>
+								<option value="3">Three</option>
+							</select>
+						</div>
 					</div>
 
 					<div class="navigation">
