@@ -519,7 +519,7 @@ directly from github. The latest uncompressed version is available here:
 ## Requirements
 
 *   **[jQuery](http://jquery.com/)**  
-    Versions 1.6.0 or higher.
+    Versions 1.7.0 or higher.
 
 *   **[jQuery UI](http://jqueryui.com/)**  
     Core and Widget, versions 1.9.0 or higher.
