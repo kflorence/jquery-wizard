@@ -524,7 +524,7 @@ directly from github. The latest uncompressed version is available here:
 *   **[jQuery UI](http://jqueryui.com/)**  
     Core and Widget, versions 1.9.0 or higher.
 
-## Compabitility
+## Compatibility
 
 Tested and verified to work on the following browsers:
 
